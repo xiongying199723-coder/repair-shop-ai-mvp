@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - RepairShop AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'auto-blue': '#1e40af',
+                        'auto-orange': '#f97316',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .tab-active {
+            color: #f97316;
+            border-bottom: 3px solid #f97316;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-new { background: #dbeafe; color: #1e40af; }
+        .status-contacted { background: #fef3c7; color: #92400e; }
+        .status-quote-sent { background: #e0e7ff; color: #4338ca; }
+        .status-closed { background: #d1fae5; color: #065f46; }
+        .status-lost { background: #fee2e2; color: #991b1b; }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+        }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #f97316;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 2% auto;
+            padding: 0;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 1200px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .best-value-badge {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .print-section {
+            display: none;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .print-section, .print-section * {
+                visibility: visible;
+            }
+            .print-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                display: block;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <svg class="h-8 w-8 text-auto-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        <span class="ml-2 text-2xl font-bold text-gray-900">RepairShop<span class="text-auto-orange">AI</span></span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-gray-700 hover:text-auto-blue px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                    <button onclick="clearAllData()" class="text-red-600 hover:text-red-700 px-3 py-2 rounded-md text-sm font-medium">Clear Data</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+            <p class="text-gray-600 mt-1">Manage your leads, find parts, and track performance</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="bg-white rounded-lg shadow-sm mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="flex -mb-px">
+                    <button onclick="switchTab('leads')" id="tab-leads" class="tab-active px-6 py-4 text-sm font-semibold border-b-3 transition">
+                        Leads
+                    </button>
+                    <button onclick="switchTab('analytics')" id="tab-analytics" class="px-6 py-4 text-sm font-semibold text-gray-600 hover:text-gray-900 border-b-3 border-transparent transition">
+                        Analytics
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Leads Tab Content -->
+        <div id="content-leads" class="tab-content">
+
+            <!-- Filters and Search -->
+            <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div class="flex-1">
+                        <input type="text" id="searchInput" placeholder="Search by customer name..."
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-auto-blue focus:border-transparent"
+                            onkeyup="filterLeads()">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm font-medium text-gray-700">Status:</label>
+                        <select id="statusFilter" onchange="filterLeads()"
+                            class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-auto-blue focus:border-transparent">
+                            <option value="all">All Statuses</option>
+                            <option value="New">New</option>
+                            <option value="Contacted">Contacted</option>
+                            <option value="Quote Sent">Quote Sent</option>
+                            <option value="Closed">Closed</option>
+                            <option value="Lost">Lost</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lead Counter -->
+            <div class="mb-6">
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg p-6 shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-blue-100 text-sm font-medium">Active Leads</p>
+                            <p class="text-4xl font-bold mt-1" id="leadCount">0</p>
+                        </div>
+                        <svg class="h-16 w-16 text-blue-300 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leads Grid -->
+            <div id="leadsContainer" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Leads will be rendered here by JavaScript -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden text-center py-16">
+                <svg class="mx-auto h-24 w-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <h3 class="mt-4 text-lg font-medium text-gray-900">No leads found</h3>
+                <p class="mt-2 text-gray-500">Get started by capturing your first lead on the home page</p>
+                <a href="index.html#demo" class="mt-4 inline-block bg-auto-orange text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition">
+                    Capture Lead
+                </a>
+            </div>
+        </div>
+
+        <!-- Analytics Tab Content -->
+        <div id="content-analytics" class="tab-content hidden">
+
+            <!-- Metrics Grid -->
+            <div class="grid md:grid-cols-4 gap-6 mb-8">
+                <!-- Total Leads -->
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Total Leads</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-2" id="metric-total-leads">0</p>
+                            <p class="text-sm text-gray-500 mt-1">This month</p>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-lg">
+                            <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quotes Sent -->
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Quotes Sent</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-2" id="metric-quotes">0</p>
+                            <p class="text-sm text-gray-500 mt-1">This month</p>
+                        </div>
+                        <div class="bg-purple-100 p-3 rounded-lg">
+                            <svg class="h-8 w-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conversion Rate -->
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Conversion Rate</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-2" id="metric-conversion">0%</p>
+                            <p class="text-sm text-gray-500 mt-1">Leads to closed</p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-lg">
+                            <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Revenue -->
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Total Revenue</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-2" id="metric-revenue">$0</p>
+                            <p class="text-sm text-gray-500 mt-1">Closed deals</p>
+                        </div>
+                        <div class="bg-orange-100 p-3 rounded-lg">
+                            <svg class="h-8 w-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <!-- Leads Per Week Chart -->
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Leads Per Week</h3>
+                    <canvas id="leadsChart"></canvas>
+                </div>
+
+                <!-- Status Distribution -->
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Lead Status Distribution</h3>
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Parts Searches -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Parts Searches</h3>
+                <div id="recentSearches" class="space-y-3">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Parts Finder Modal -->
+    <div id="partsModal" class="modal">
+        <div class="modal-content">
+            <div class="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl z-10">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-bold text-gray-900">AI Parts Finder</h2>
+                    <button onclick="closePartsModal()" class="text-gray-400 hover:text-gray-600 transition">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6">
+                <!-- Lead Details -->
+                <div id="modalLeadDetails" class="bg-blue-50 rounded-lg p-6 mb-6">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+
+                <!-- Search Button -->
+                <div id="searchSection" class="text-center mb-6">
+                    <button onclick="searchForParts()" class="bg-auto-orange text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-orange-600 transition inline-flex items-center">
+                        <svg class="mr-2 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        Search for Parts with AI
+                    </button>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loadingSection" class="hidden text-center py-12">
+                    <div class="loader mx-auto mb-4"></div>
+                    <p class="text-gray-600 font-medium">Searching across multiple suppliers...</p>
+                    <p class="text-gray-500 text-sm mt-2">This may take a few seconds</p>
+                </div>
+
+                <!-- Parts Results -->
+                <div id="partsResults" class="hidden">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Available Parts</h3>
+                    <div id="partsGrid" class="grid md:grid-cols-2 gap-6 mb-6">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+
+                    <!-- Labor Estimate -->
+                    <div class="bg-gray-50 rounded-lg p-6 border-2 border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-700 font-semibold">Estimated Labor:</span>
+                            <span class="text-xl font-bold text-gray-900" id="laborCost">$0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quote Modal -->
+    <div id="quoteModal" class="modal">
+        <div class="modal-content">
+            <div class="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl z-10 no-print">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-bold text-gray-900">Quote Generated</h2>
+                    <button onclick="closeQuoteModal()" class="text-gray-400 hover:text-gray-600 transition">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6" id="quoteContent">
+                <!-- Will be populated by JavaScript -->
+            </div>
+
+            <div class="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-6 rounded-b-2xl no-print">
+                <div class="flex gap-4">
+                    <button onclick="sendQuote()" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition">
+                        Send Quote to Customer
+                    </button>
+                    <button onclick="window.print()" class="flex-1 bg-auto-blue text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-800 transition">
+                        Download PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
