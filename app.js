@@ -1,4 +1,4 @@
-// RepairShop AI - Main Application JavaScript
+// Conneverse - Main Application JavaScript
 
 // Global Variables
 let currentLead = null;
@@ -288,12 +288,12 @@ const laborCosts = {
 // Initialize Application
 function initializeApp() {
     // Check if this is the first run
-    const existingLeads = localStorage.getItem('repairshop_leads');
-    const hasSeenWelcome = localStorage.getItem('repairshop_welcome_seen');
+    const existingLeads = localStorage.getItem('conneverse_leads');
+    const hasSeenWelcome = localStorage.getItem('conneverse_welcome_seen');
 
     if (!existingLeads || JSON.parse(existingLeads).length === 0) {
         // First run - load sample data
-        localStorage.setItem('repairshop_leads', JSON.stringify(sampleLeads));
+        localStorage.setItem('conneverse_leads', JSON.stringify(sampleLeads));
         console.log('Sample data loaded');
     }
 
@@ -314,13 +314,13 @@ function initializeApp() {
 
 // Load leads from localStorage
 function loadLeads() {
-    const stored = localStorage.getItem('repairshop_leads');
+    const stored = localStorage.getItem('conneverse_leads');
     allLeads = stored ? JSON.parse(stored) : [];
 }
 
 // Save leads to localStorage
 function saveLeads() {
-    localStorage.setItem('repairshop_leads', JSON.stringify(allLeads));
+    localStorage.setItem('conneverse_leads', JSON.stringify(allLeads));
 }
 
 // Render Leads
@@ -644,7 +644,7 @@ function searchForParts() {
             partType: partType,
             timestamp: new Date().toISOString()
         });
-        localStorage.setItem('repairshop_searches', JSON.stringify(partsSearchHistory));
+        localStorage.setItem('conneverse_searches', JSON.stringify(partsSearchHistory));
 
         // Hide loading, show results
         document.getElementById('loadingSection').classList.add('hidden');
@@ -745,7 +745,7 @@ function generateQuote(part, laborCost) {
                             <svg class="h-10 w-10 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                             </svg>
-                            <span class="text-2xl font-bold">RepairShop<span class="text-orange-300">AI</span></span>
+                            <span class="text-2xl font-bold">Conne<span class="text-orange-300">verse</span></span>
                         </div>
                         <p class="text-blue-100 text-sm">Your Trusted Auto Shop</p>
                     </div>
@@ -842,8 +842,8 @@ function generateQuote(part, laborCost) {
             </div>
 
             <div class="text-center text-gray-500 text-sm mt-8 pt-6 border-t">
-                <p>Thank you for choosing RepairShop AI!</p>
-                <p class="mt-1">Questions? Contact us at (555) 123-4567 or info@repairshopaI.com</p>
+                <p>Thank you for choosing Conneverse!</p>
+                <p class="mt-1">Questions? Contact us at (555) 123-4567 or info@conneverse.com</p>
             </div>
         </div>
     `;
@@ -1027,7 +1027,7 @@ function updateRecentSearches() {
     if (!container) return;
 
     // Load searches from localStorage
-    const stored = localStorage.getItem('repairshop_searches');
+    const stored = localStorage.getItem('conneverse_searches');
     partsSearchHistory = stored ? JSON.parse(stored) : [];
 
     if (partsSearchHistory.length === 0) {
@@ -1146,9 +1146,9 @@ function markAsLost(leadId) {
 // Clear All Data
 function clearAllData() {
     if (confirm('Are you sure you want to clear all data? This will reset the app to initial state with sample data.')) {
-        localStorage.removeItem('repairshop_leads');
-        localStorage.removeItem('repairshop_searches');
-        localStorage.removeItem('repairshop_welcome_seen');
+        localStorage.removeItem('conneverse_leads');
+        localStorage.removeItem('conneverse_searches');
+        localStorage.removeItem('conneverse_welcome_seen');
         location.reload();
     }
 }
@@ -1165,7 +1165,7 @@ function closeWelcome() {
     const modal = document.getElementById('welcomeModal');
     if (modal) {
         modal.style.display = 'none';
-        localStorage.setItem('repairshop_welcome_seen', 'true');
+        localStorage.setItem('conneverse_welcome_seen', 'true');
     }
 }
 
