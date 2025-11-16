@@ -289,6 +289,7 @@ const laborCosts = {
 function initializeApp() {
     // Check if this is the first run
     const existingLeads = localStorage.getItem('repairshop_leads');
+    const hasSeenWelcome = localStorage.getItem('repairshop_welcome_seen');
 
     if (!existingLeads || JSON.parse(existingLeads).length === 0) {
         // First run - load sample data
@@ -302,6 +303,13 @@ function initializeApp() {
     // Render initial view
     renderLeads();
     updateAnalytics();
+
+    // Show welcome modal on first visit
+    if (!hasSeenWelcome) {
+        setTimeout(() => {
+            showWelcome();
+        }, 500);
+    }
 }
 
 // Load leads from localStorage
@@ -340,6 +348,12 @@ function renderLeads() {
         leadCount.textContent = filteredLeads.length;
     }
 
+    // Update leads badge in tab
+    const leadsBadge = document.getElementById('leads-badge');
+    if (leadsBadge) {
+        leadsBadge.textContent = allLeads.length;
+    }
+
     if (filteredLeads.length === 0) {
         container.innerHTML = '';
         emptyState.classList.remove('hidden');
@@ -348,34 +362,96 @@ function renderLeads() {
 
     emptyState.classList.add('hidden');
 
+    // Determine status colors for left border
+    const getStatusBorder = (status) => {
+        switch(status) {
+            case 'New': return 'border-l-blue-500';
+            case 'Contacted': return 'border-l-yellow-500';
+            case 'Quote Sent': return 'border-l-purple-500';
+            case 'Closed': return 'border-l-green-500';
+            case 'Lost': return 'border-l-red-500';
+            default: return 'border-l-gray-500';
+        }
+    };
+
+    // Check if lead is less than 24 hours old
+    const isNewLead = (timestamp) => {
+        const now = new Date();
+        const leadDate = new Date(timestamp);
+        const hoursDiff = (now - leadDate) / (1000 * 60 * 60);
+        return hoursDiff < 24;
+    };
+
     // Render lead cards
-    container.innerHTML = filteredLeads.map(lead => `
-        <div class="bg-white rounded-lg shadow-sm p-6 card-hover border border-gray-200">
+    container.innerHTML = filteredLeads.map((lead, index) => `
+        <div class="bg-white rounded-lg shadow-sm p-6 card-hover border border-gray-200 border-l-4 ${getStatusBorder(lead.status)} relative animate-slide-in ${isNewLead(lead.timestamp) && lead.status === 'New' ? 'ring-2 ring-blue-300' : ''}" style="animation-delay: ${index * 0.05}s">
+            ${isNewLead(lead.timestamp) && lead.status === 'New' ? '<div class="absolute top-2 left-2"><span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-blue-500 text-white new-lead-pulse"><span class="mr-1">●</span> NEW</span></div>' : ''}
+            <!-- Status Badge -->
             <div class="flex justify-between items-start mb-4">
                 <div>
                     <h3 class="text-xl font-bold text-gray-900">${lead.customerName}</h3>
                     <p class="text-gray-600 text-sm mt-1">${formatDate(lead.timestamp)}</p>
                 </div>
-                <span class="status-badge status-${lead.status.toLowerCase().replace(' ', '-')}">${lead.status}</span>
+                <div class="flex items-center gap-2">
+                    <span class="status-badge status-${lead.status.toLowerCase().replace(' ', '-')}">${lead.status}</span>
+                    <!-- Actions Menu -->
+                    <div class="relative group">
+                        <button class="text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100 transition" onclick="toggleMenu(event, ${lead.id})">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                            </svg>
+                        </button>
+                        <!-- Dropdown Menu -->
+                        <div id="menu-${lead.id}" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10 py-1">
+                            <button onclick="updateLeadStatus(${lead.id}); closeMenu(${lead.id})" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
+                                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                ${lead.status === 'New' ? 'Mark Contacted' : lead.status === 'Contacted' ? 'Mark Quote Sent' : 'Update Status'}
+                            </button>
+                            <button onclick="markAsClosed(${lead.id}); closeMenu(${lead.id})" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
+                                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Mark as Closed
+                            </button>
+                            <button onclick="markAsLost(${lead.id}); closeMenu(${lead.id})" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
+                                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                                Mark as Lost
+                            </button>
+                            <div class="border-t border-gray-200 my-1"></div>
+                            <button onclick="deleteLead(${lead.id}); closeMenu(${lead.id})" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center">
+                                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                                Delete Lead
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
+            <!-- Contact Info -->
             <div class="space-y-2 mb-4">
                 <div class="flex items-center text-gray-600">
                     <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                     </svg>
-                    <span class="text-sm">${lead.phone}</span>
+                    <a href="tel:${lead.phone}" class="text-sm hover:text-auto-blue transition">${lead.phone}</a>
                 </div>
                 ${lead.email ? `
                 <div class="flex items-center text-gray-600">
                     <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                     </svg>
-                    <span class="text-sm">${lead.email}</span>
+                    <a href="mailto:${lead.email}" class="text-sm hover:text-auto-blue transition">${lead.email}</a>
                 </div>
                 ` : ''}
             </div>
 
+            <!-- Vehicle Info -->
             <div class="bg-blue-50 rounded-lg p-3 mb-4">
                 <div class="flex items-center text-auto-blue mb-2">
                     <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -386,6 +462,7 @@ function renderLeads() {
                 <p class="text-gray-700 text-sm">${lead.issue}</p>
             </div>
 
+            <!-- Quote Amount -->
             ${lead.quoteAmount ? `
             <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
                 <div class="flex justify-between items-center">
@@ -395,18 +472,25 @@ function renderLeads() {
             </div>
             ` : ''}
 
-            <div class="flex gap-2">
-                <button onclick="openPartsModal(${lead.id})" class="flex-1 bg-auto-orange text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-orange-600 transition">
-                    Find Parts
+            <!-- Primary Action Button (Full Width, Prominent) -->
+            <button onclick="openPartsModal(${lead.id})" class="w-full bg-gradient-to-r from-auto-orange to-orange-600 text-white px-6 py-3 rounded-lg text-base font-bold hover:shadow-lg hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 mb-3">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                Find Parts & Create Quote
+            </button>
+
+            <!-- Secondary Actions -->
+            <div class="flex flex-col sm:flex-row gap-2">
+                <button onclick="updateLeadStatus(${lead.id})" class="flex-1 bg-white border-2 border-blue-600 text-blue-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-50 transition">
+                    ${lead.status === 'New' ? 'Mark Contacted' : lead.status === 'Contacted' ? 'Mark Quote Sent' : 'Update Status'}
                 </button>
-                <button onclick="updateLeadStatus(${lead.id})" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition">
-                    Mark Contacted
-                </button>
-                <button onclick="deleteLead(${lead.id})" class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition">
+                <a href="tel:${lead.phone}" class="flex-1 bg-white border-2 border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition text-center flex items-center justify-center gap-1">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                     </svg>
-                </button>
+                    Call
+                </a>
             </div>
         </div>
     `).join('');
@@ -415,16 +499,57 @@ function renderLeads() {
 // Filter Leads
 function filterLeads() {
     renderLeads();
+    updateFilterStatus();
+}
+
+// Clear Filters
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statusFilter').value = 'all';
+    filterLeads();
+    showToast('Filters cleared', 'info');
+}
+
+// Update Filter Status
+function updateFilterStatus() {
+    const searchTerm = document.getElementById('searchInput')?.value || '';
+    const statusFilter = document.getElementById('statusFilter')?.value || 'all';
+    const filterStatus = document.getElementById('filterStatus');
+
+    if (!filterStatus) return;
+
+    if (searchTerm || statusFilter !== 'all') {
+        const parts = [];
+        if (searchTerm) parts.push(`Search: "${searchTerm}"`);
+        if (statusFilter !== 'all') parts.push(`Status: ${statusFilter}`);
+
+        const totalFiltered = allLeads.filter(lead => {
+            const matchesSearch = lead.customerName.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
+            return matchesSearch && matchesStatus;
+        }).length;
+
+        filterStatus.innerHTML = `<span class="font-medium">Showing ${totalFiltered} of ${allLeads.length} leads</span> • ${parts.join(' • ')}`;
+        filterStatus.classList.remove('hidden');
+    } else {
+        filterStatus.innerHTML = '';
+        filterStatus.classList.add('hidden');
+    }
 }
 
 // Update Lead Status
 function updateLeadStatus(leadId) {
     const lead = allLeads.find(l => l.id === leadId);
     if (lead) {
+        const oldStatus = lead.status;
         if (lead.status === 'New') {
             lead.status = 'Contacted';
+            showToast('Lead marked as contacted', 'success');
         } else if (lead.status === 'Contacted') {
             lead.status = 'Quote Sent';
+            showToast('Lead marked as quote sent', 'success');
+        } else {
+            showToast('Status updated', 'info');
         }
         saveLeads();
         renderLeads();
@@ -532,28 +657,28 @@ function renderParts(parts, laborCost) {
     const container = document.getElementById('partsGrid');
 
     container.innerHTML = parts.map((part, index) => `
-        <div class="bg-white rounded-lg border-2 ${part.bestValue ? 'border-green-500' : 'border-gray-200'} p-6 relative">
-            ${part.bestValue ? '<div class="absolute top-0 right-0 m-4"><span class="best-value-badge">BEST VALUE</span></div>' : ''}
+        <div class="bg-white rounded-lg border-2 ${part.bestValue ? 'border-green-500' : 'border-gray-200'} p-4 sm:p-6 relative hover:shadow-lg transition-shadow">
+            ${part.bestValue ? '<div class="absolute top-0 right-0 m-3 sm:m-4"><span class="best-value-badge text-xs sm:text-sm">BEST VALUE</span></div>' : ''}
 
-            <div class="mb-4">
-                <h4 class="text-lg font-bold text-gray-900 mb-1">${part.name}</h4>
-                <p class="text-gray-600 text-sm">${part.brand}</p>
+            <div class="mb-4 ${part.bestValue ? 'pr-24' : ''}">
+                <h4 class="text-base sm:text-lg font-bold text-gray-900 mb-1">${part.name}</h4>
+                <p class="text-gray-600 text-xs sm:text-sm">${part.brand}</p>
             </div>
 
             <div class="space-y-2 mb-4">
-                <div class="flex justify-between text-sm">
+                <div class="flex justify-between text-xs sm:text-sm">
                     <span class="text-gray-600">Supplier:</span>
-                    <span class="font-semibold text-gray-900">${part.supplier}</span>
+                    <span class="font-semibold text-gray-900 text-right">${part.supplier}</span>
                 </div>
-                <div class="flex justify-between text-sm">
+                <div class="flex justify-between text-xs sm:text-sm">
                     <span class="text-gray-600">Delivery:</span>
                     <span class="font-semibold text-gray-900">${part.delivery}</span>
                 </div>
-                <div class="flex justify-between text-sm">
+                <div class="flex justify-between text-xs sm:text-sm">
                     <span class="text-gray-600">Stock:</span>
                     <span class="font-semibold ${part.stock === 'In Stock' ? 'text-green-600' : 'text-orange-600'}">${part.stock}</span>
                 </div>
-                <div class="flex justify-between items-center text-sm">
+                <div class="flex justify-between items-center text-xs sm:text-sm">
                     <span class="text-gray-600">Rating:</span>
                     <div class="flex items-center">
                         <span class="text-yellow-500 mr-1">${'★'.repeat(Math.floor(part.rating))}${'☆'.repeat(5 - Math.floor(part.rating))}</span>
@@ -564,12 +689,12 @@ function renderParts(parts, laborCost) {
 
             <div class="border-t pt-4 mb-4">
                 <div class="flex justify-between items-center">
-                    <span class="text-gray-600 font-semibold">Price:</span>
-                    <span class="text-2xl font-bold text-auto-orange">$${part.price.toFixed(2)}</span>
+                    <span class="text-gray-600 font-semibold text-sm sm:text-base">Price:</span>
+                    <span class="text-xl sm:text-2xl font-bold text-auto-orange">$${part.price.toFixed(2)}</span>
                 </div>
             </div>
 
-            <button onclick="selectPart(${index})" class="w-full ${part.bestValue ? 'bg-green-600 hover:bg-green-700' : 'bg-auto-blue hover:bg-blue-800'} text-white px-4 py-3 rounded-lg font-semibold transition">
+            <button onclick="selectPart(${index})" class="w-full ${part.bestValue ? 'bg-green-600 hover:bg-green-700' : 'bg-auto-blue hover:bg-blue-800'} text-white px-4 py-3 rounded-lg font-semibold transition text-sm sm:text-base">
                 Select This Part
             </button>
         </div>
@@ -751,7 +876,7 @@ function sendQuote() {
     updateAnalytics();
 
     // Show success message
-    alert('Quote sent successfully! The customer will receive it via email and SMS.');
+    showToast('Quote sent successfully! Customer will receive it via email and SMS.', 'success');
 
     closeQuoteModal();
 }
@@ -971,16 +1096,159 @@ function formatDate(dateString) {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+// Toggle Dropdown Menu
+function toggleMenu(event, leadId) {
+    event.stopPropagation();
+    const menu = document.getElementById(`menu-${leadId}`);
+
+    // Close all other menus
+    document.querySelectorAll('[id^="menu-"]').forEach(m => {
+        if (m.id !== `menu-${leadId}`) {
+            m.classList.add('hidden');
+        }
+    });
+
+    menu.classList.toggle('hidden');
+}
+
+// Close Menu
+function closeMenu(leadId) {
+    const menu = document.getElementById(`menu-${leadId}`);
+    if (menu) {
+        menu.classList.add('hidden');
+    }
+}
+
+// Mark Lead as Closed
+function markAsClosed(leadId) {
+    const lead = allLeads.find(l => l.id === leadId);
+    if (lead) {
+        lead.status = 'Closed';
+        saveLeads();
+        renderLeads();
+        updateAnalytics();
+        showToast('Lead marked as closed!', 'success');
+    }
+}
+
+// Mark Lead as Lost
+function markAsLost(leadId) {
+    const lead = allLeads.find(l => l.id === leadId);
+    if (lead) {
+        lead.status = 'Lost';
+        saveLeads();
+        renderLeads();
+        updateAnalytics();
+        showToast('Lead marked as lost', 'info');
+    }
+}
+
 // Clear All Data
 function clearAllData() {
     if (confirm('Are you sure you want to clear all data? This will reset the app to initial state with sample data.')) {
         localStorage.removeItem('repairshop_leads');
         localStorage.removeItem('repairshop_searches');
+        localStorage.removeItem('repairshop_welcome_seen');
         location.reload();
     }
 }
 
-// Close modals when clicking outside
+// Welcome Tour Functions
+function showWelcome() {
+    const modal = document.getElementById('welcomeModal');
+    if (modal) {
+        modal.style.display = 'block';
+    }
+}
+
+function closeWelcome() {
+    const modal = document.getElementById('welcomeModal');
+    if (modal) {
+        modal.style.display = 'none';
+        localStorage.setItem('repairshop_welcome_seen', 'true');
+    }
+}
+
+function startTour() {
+    closeWelcome();
+    // Highlight first lead and show tooltip
+    showToast('Click on any lead card to find parts and create a quote!', 'info');
+
+    // Add highlight to first lead card
+    setTimeout(() => {
+        const firstLead = document.querySelector('#leadsContainer > div:first-child');
+        if (firstLead) {
+            firstLead.classList.add('ring-4', 'ring-auto-orange');
+            firstLead.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Remove highlight after 5 seconds
+            setTimeout(() => {
+                firstLead.classList.remove('ring-4', 'ring-auto-orange');
+            }, 5000);
+        }
+    }, 500);
+}
+
+// Toast Notification System
+function showToast(message, type = 'info') {
+    // Create toast container if it doesn't exist
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'fixed top-4 right-4 z-50 space-y-2';
+        document.body.appendChild(toastContainer);
+    }
+
+    // Create toast element
+    const toast = document.createElement('div');
+    const toastId = 'toast-' + Date.now();
+    toast.id = toastId;
+
+    const bgColor = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600';
+    const icon = type === 'success'
+        ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>'
+        : type === 'error'
+        ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'
+        : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>';
+
+    toast.className = `${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 min-w-[300px] transform transition-all duration-300 translate-x-full`;
+    toast.innerHTML = `
+        <svg class="h-6 w-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            ${icon}
+        </svg>
+        <span class="flex-1 font-medium">${message}</span>
+        <button onclick="dismissToast('${toastId}')" class="text-white hover:text-gray-200 transition">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    `;
+
+    toastContainer.appendChild(toast);
+
+    // Trigger animation
+    setTimeout(() => {
+        toast.classList.remove('translate-x-full');
+    }, 10);
+
+    // Auto-dismiss after 4 seconds
+    setTimeout(() => {
+        dismissToast(toastId);
+    }, 4000);
+}
+
+function dismissToast(toastId) {
+    const toast = document.getElementById(toastId);
+    if (toast) {
+        toast.classList.add('translate-x-full', 'opacity-0');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }
+}
+
+// Close modals and menus when clicking outside
 window.onclick = function(event) {
     const partsModal = document.getElementById('partsModal');
     const quoteModal = document.getElementById('quoteModal');
@@ -990,6 +1258,13 @@ window.onclick = function(event) {
     }
     if (event.target === quoteModal) {
         closeQuoteModal();
+    }
+
+    // Close dropdown menus when clicking outside
+    if (!event.target.closest('[onclick^="toggleMenu"]')) {
+        document.querySelectorAll('[id^="menu-"]').forEach(menu => {
+            menu.classList.add('hidden');
+        });
     }
 }
 
