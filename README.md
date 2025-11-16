@@ -1,4 +1,4 @@
-# RepairShop AI - Parts Finder & Lead Manager
+# Conneverse - Parts Finder & Lead Manager
 
 AI-powered tool for auto repair shops to manage customer leads and find parts automatically.
 
