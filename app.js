@@ -1171,22 +1171,187 @@ function closeWelcome() {
 
 function startTour() {
     closeWelcome();
-    // Highlight first lead and show tooltip
-    showToast('Click on any lead card to find parts and create a quote!', 'info');
+    localStorage.setItem('conneverse_welcome_seen', 'true');
+    initOnboardingTour();
+}
 
-    // Add highlight to first lead card
-    setTimeout(() => {
-        const firstLead = document.querySelector('#leadsContainer > div:first-child');
-        if (firstLead) {
-            firstLead.classList.add('ring-4', 'ring-auto-orange');
-            firstLead.scrollIntoView({ behavior: 'smooth', block: 'center' });
+// Restart tour from Help button
+function restartTour() {
+    initOnboardingTour();
+}
 
-            // Remove highlight after 5 seconds
-            setTimeout(() => {
-                firstLead.classList.remove('ring-4', 'ring-auto-orange');
-            }, 5000);
+// Onboarding Tour System
+let currentTourStep = 0;
+const tourSteps = [
+    {
+        element: '#tab-leads',
+        title: 'Leads Tab',
+        description: 'All customer inquiries appear here. New leads are highlighted with a pulsing badge so you never miss an opportunity.',
+        position: 'bottom'
+    },
+    {
+        element: '#leadsContainer',
+        title: 'Lead Cards',
+        description: 'Each card shows customer info, vehicle details, and the issue. Click "Find Parts & Create Quote" to start the AI-powered parts search.',
+        position: 'top'
+    },
+    {
+        element: '#tab-analytics',
+        title: 'Analytics Dashboard',
+        description: 'Track your performance with metrics like total leads, conversion rates, and revenue. Monitor your success in real-time.',
+        position: 'bottom'
+    },
+    {
+        element: 'nav',
+        title: 'Help Button',
+        description: 'Click the Help button anytime to restart this tour. You can also clear all data to reset the app to its initial state.',
+        position: 'bottom'
+    }
+];
+
+function initOnboardingTour() {
+    currentTourStep = 0;
+    showTourStep(currentTourStep);
+}
+
+function showTourStep(stepIndex) {
+    if (stepIndex < 0 || stepIndex >= tourSteps.length) {
+        endTour();
+        return;
+    }
+
+    const step = tourSteps[stepIndex];
+    const element = document.querySelector(step.element);
+
+    if (!element) {
+        console.error('Tour element not found:', step.element);
+        nextTourStep();
+        return;
+    }
+
+    // Show overlay
+    const overlay = document.getElementById('tourOverlay');
+    const spotlight = document.getElementById('tourSpotlight');
+    const tooltip = document.getElementById('tourTooltip');
+
+    overlay.classList.add('active');
+
+    // Position spotlight on element
+    const rect = element.getBoundingClientRect();
+    const padding = 8;
+
+    spotlight.style.top = (rect.top - padding) + 'px';
+    spotlight.style.left = (rect.left - padding) + 'px';
+    spotlight.style.width = (rect.width + padding * 2) + 'px';
+    spotlight.style.height = (rect.height + padding * 2) + 'px';
+
+    // Add highlight class to element
+    element.classList.add('tour-highlight');
+
+    // Position tooltip
+    positionTooltip(tooltip, rect, step.position);
+
+    // Render tooltip content
+    tooltip.innerHTML = `
+        <h3>${step.title}</h3>
+        <p>${step.description}</p>
+        <div class="tour-tooltip-footer">
+            <div class="tour-progress">Step ${stepIndex + 1} of ${tourSteps.length}</div>
+            <div class="tour-buttons">
+                <button onclick="skipTour()" class="tour-btn tour-btn-skip">Skip</button>
+                ${stepIndex > 0 ? '<button onclick="prevTourStep()" class="tour-btn tour-btn-prev">Previous</button>' : ''}
+                <button onclick="nextTourStep()" class="tour-btn tour-btn-next">
+                    ${stepIndex === tourSteps.length - 1 ? 'Finish' : 'Next'}
+                </button>
+            </div>
+        </div>
+    `;
+
+    // Scroll element into view
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function positionTooltip(tooltip, elementRect, position) {
+    const padding = 20;
+    const tooltipWidth = 400;
+
+    // Reset any previous positioning
+    tooltip.style.top = '';
+    tooltip.style.bottom = '';
+    tooltip.style.left = '';
+    tooltip.style.right = '';
+
+    if (position === 'bottom') {
+        tooltip.style.top = (elementRect.bottom + padding) + 'px';
+        tooltip.style.left = Math.max(padding, Math.min(
+            window.innerWidth - tooltipWidth - padding,
+            elementRect.left + (elementRect.width / 2) - (tooltipWidth / 2)
+        )) + 'px';
+    } else if (position === 'top') {
+        tooltip.style.bottom = (window.innerHeight - elementRect.top + padding) + 'px';
+        tooltip.style.left = Math.max(padding, Math.min(
+            window.innerWidth - tooltipWidth - padding,
+            elementRect.left + (elementRect.width / 2) - (tooltipWidth / 2)
+        )) + 'px';
+    } else if (position === 'right') {
+        tooltip.style.top = (elementRect.top + (elementRect.height / 2) - 100) + 'px';
+        tooltip.style.left = (elementRect.right + padding) + 'px';
+    } else if (position === 'left') {
+        tooltip.style.top = (elementRect.top + (elementRect.height / 2) - 100) + 'px';
+        tooltip.style.right = (window.innerWidth - elementRect.left + padding) + 'px';
+    }
+}
+
+function nextTourStep() {
+    // Remove highlight from current element
+    const currentStep = tourSteps[currentTourStep];
+    const currentElement = document.querySelector(currentStep.element);
+    if (currentElement) {
+        currentElement.classList.remove('tour-highlight');
+    }
+
+    currentTourStep++;
+
+    if (currentTourStep >= tourSteps.length) {
+        endTour();
+        showToast('Tour complete! You\'re ready to start using Conneverse.', 'success');
+    } else {
+        showTourStep(currentTourStep);
+    }
+}
+
+function prevTourStep() {
+    // Remove highlight from current element
+    const currentStep = tourSteps[currentTourStep];
+    const currentElement = document.querySelector(currentStep.element);
+    if (currentElement) {
+        currentElement.classList.remove('tour-highlight');
+    }
+
+    currentTourStep--;
+    showTourStep(currentTourStep);
+}
+
+function skipTour() {
+    endTour();
+    showToast('Tour skipped. Click Help to restart anytime.', 'info');
+}
+
+function endTour() {
+    // Remove highlight from current element
+    if (currentTourStep < tourSteps.length) {
+        const currentStep = tourSteps[currentTourStep];
+        const currentElement = document.querySelector(currentStep.element);
+        if (currentElement) {
+            currentElement.classList.remove('tour-highlight');
         }
-    }, 500);
+    }
+
+    // Hide overlay
+    const overlay = document.getElementById('tourOverlay');
+    overlay.classList.remove('active');
+
+    currentTourStep = 0;
 }
 
 // Toast Notification System
