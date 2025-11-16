@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>UX Improvements Checklist</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .check { color: green; font-weight: bold; }
+        .feature { margin: 15px 0; padding: 10px; border-left: 4px solid #2563eb; background: #eff6ff; }
+        h1 { color: #1e40af; }
+    </style>
+</head>
+<body>
+    <h1>✅ RepairShop AI - UX Improvements Checklist</h1>
+    <p>Open <code>dashboard.html</code> and verify you see these features:</p>
+    
+    <div class="feature">
+        <span class="check">✓</span> <strong>Welcome Modal</strong><br>
+        Should appear on first visit with "Welcome to RepairShop AI! 👋"
+    </div>
+    
+    <div class="feature">
+        <span class="check">✓</span> <strong>Colored Left Borders on Lead Cards</strong><br>
+        Blue (New), Yellow (Contacted), Purple (Quote Sent), Green (Closed), Red (Lost)
+    </div>
+    
+    <div class="feature">
+        <span class="check">✓</span> <strong>Big Orange Button</strong><br>
+        "Find Parts & Create Quote" - full width, gradient background
+    </div>
+    
+    <div class="feature">
+        <span class="check">✓</span> <strong>Three-Dot Menu (⋮)</strong><br>
+        Top-right of each lead card for additional actions
+    </div>
+    
+    <div class="feature">
+        <span class="check">✓</span> <strong>Toast Notifications</strong><br>
+        Slide from top-right when you update status (not popup alerts)
+    </div>
+    
+    <div class="feature">
+        <span class="check">✓</span> <strong>Tab Badge</strong><br>
+        "Leads" tab shows count in orange badge
+    </div>
+    
+    <div class="feature">
+        <span class="check">✓</span> <strong>NEW Badge</strong><br>
+        Pulsing blue badge on leads less than 24 hours old
+    </div>
+    
+    <div class="feature">
+        <span class="check">✓</span> <strong>Search Icon</strong><br>
+        Magnifying glass icon inside the search box
+    </div>
+    
+    <div class="feature">
+        <span class="check">✓</span> <strong>Filter Status</strong><br>
+        "Showing X of Y leads" appears when filtering
+    </div>
+    
+    <h2>How to View:</h2>
+    <ol>
+        <li>Start local server: <code>python3 -m http.server 8080</code></li>
+        <li>Open: <a href="http://localhost:8080/dashboard.html">http://localhost:8080/dashboard.html</a></li>
+        <li>Hard refresh: Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac)</li>
+        <li>To see welcome: Delete "repairshop_welcome_seen" from localStorage</li>
+    </ol>
+    
+    <h2>File Changes:</h2>
+    <ul>
+        <li><strong>dashboard.html:</strong> +180 lines (Welcome modal, improved filters, animations)</li>
+        <li><strong>app.js:</strong> +333 lines (Toast system, dropdown menus, welcome tour)</li>
+        <li><strong>Total:</strong> 473 lines added, 40 lines changed</li>
+    </ul>
+</body>
+</html>
