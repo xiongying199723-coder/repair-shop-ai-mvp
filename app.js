@@ -5,6 +5,13 @@ let currentLead = null;
 let currentPart = null;
 let allLeads = [];
 let partsSearchHistory = [];
+let quoteEditMode = false;
+let currentQuoteData = {
+    partPrice: 0,
+    laborCost: 0,
+    taxRate: 0.08,
+    discount: 0
+};
 
 // Sample Data
 const sampleLeads = [
@@ -303,6 +310,31 @@ function initializeApp() {
     // Render initial view
     renderLeads();
     updateAnalytics();
+
+    // Attach event listener to new lead form
+    const newLeadForm = document.getElementById('newLeadForm');
+    if (newLeadForm) {
+        newLeadForm.addEventListener('submit', handleNewLeadSubmit);
+
+        // Add real-time validation on blur
+        const fields = ['newCustomerName', 'newPhone', 'newEmail', 'newCarMake', 'newCarModel', 'newCarYear', 'newIssue'];
+        const fieldNames = ['Customer name', 'Phone number', 'Email', 'Car make', 'Car model', 'Year', 'Issue description'];
+
+        fields.forEach((fieldId, index) => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.addEventListener('blur', () => validateNewLeadField(fieldId, fieldNames[index]));
+                field.addEventListener('input', () => {
+                    // Clear error on input
+                    const errorDiv = document.getElementById(`error-${fieldId}`);
+                    if (errorDiv && field.value.trim()) {
+                        errorDiv.classList.add('hidden');
+                        field.classList.remove('border-red-500');
+                    }
+                });
+            }
+        });
+    }
 
     // Show welcome modal on first visit
     if (!hasSeenWelcome) {
@@ -603,6 +635,9 @@ function openPartsModal(leadId) {
     document.getElementById('loadingSection').classList.add('hidden');
     document.getElementById('partsResults').classList.add('hidden');
 
+    // Reset progress indicator to step 1
+    resetProgressIndicator();
+
     modal.style.display = 'block';
 }
 
@@ -610,6 +645,138 @@ function openPartsModal(leadId) {
 function closePartsModal() {
     document.getElementById('partsModal').style.display = 'none';
     currentLead = null;
+}
+
+// New Lead Modal Functions
+function openNewLeadModal() {
+    document.getElementById('newLeadModal').style.display = 'block';
+    // Clear any previous error messages
+    document.querySelectorAll('[id^="error-new"]').forEach(el => {
+        el.classList.add('hidden');
+        el.textContent = '';
+    });
+    // Clear all error styling
+    document.querySelectorAll('#newLeadForm input, #newLeadForm textarea').forEach(el => {
+        el.classList.remove('border-red-500');
+    });
+}
+
+function closeNewLeadModal() {
+    document.getElementById('newLeadModal').style.display = 'none';
+    document.getElementById('newLeadForm').reset();
+    // Clear any error messages
+    document.querySelectorAll('[id^="error-new"]').forEach(el => {
+        el.classList.add('hidden');
+        el.textContent = '';
+    });
+    // Clear all error styling
+    document.querySelectorAll('#newLeadForm input, #newLeadForm textarea').forEach(el => {
+        el.classList.remove('border-red-500');
+    });
+}
+
+function validateNewLeadField(fieldId, fieldName) {
+    const field = document.getElementById(fieldId);
+    const errorDiv = document.getElementById(`error-${fieldId}`);
+
+    if (!field.value.trim() && field.hasAttribute('required')) {
+        errorDiv.textContent = `${fieldName} is required`;
+        errorDiv.classList.remove('hidden');
+        field.classList.add('border-red-500');
+        return false;
+    } else if (field.type === 'email' && field.value && !field.validity.valid) {
+        errorDiv.textContent = 'Please enter a valid email address';
+        errorDiv.classList.remove('hidden');
+        field.classList.add('border-red-500');
+        return false;
+    } else {
+        errorDiv.classList.add('hidden');
+        errorDiv.textContent = '';
+        field.classList.remove('border-red-500');
+        return true;
+    }
+}
+
+function handleNewLeadSubmit(event) {
+    event.preventDefault();
+
+    // Validate all fields
+    const validations = [
+        validateNewLeadField('newCustomerName', 'Customer name'),
+        validateNewLeadField('newPhone', 'Phone number'),
+        validateNewLeadField('newEmail', 'Email'),
+        validateNewLeadField('newCarMake', 'Car make'),
+        validateNewLeadField('newCarModel', 'Car model'),
+        validateNewLeadField('newCarYear', 'Year'),
+        validateNewLeadField('newIssue', 'Issue description')
+    ];
+
+    if (!validations.every(v => v)) {
+        return; // Don't submit if validation fails
+    }
+
+    // Create new lead object
+    const newLead = {
+        id: Date.now(),
+        customerName: document.getElementById('newCustomerName').value.trim(),
+        phone: document.getElementById('newPhone').value.trim(),
+        email: document.getElementById('newEmail').value.trim(),
+        carMake: document.getElementById('newCarMake').value.trim(),
+        carModel: document.getElementById('newCarModel').value.trim(),
+        carYear: document.getElementById('newCarYear').value.trim(),
+        issue: document.getElementById('newIssue').value.trim(),
+        status: 'New',
+        timestamp: new Date().toISOString(),
+        quoteAmount: null
+    };
+
+    // Add to leads array
+    allLeads.push(newLead);
+
+    // Save to localStorage
+    saveLeads();
+
+    // Re-render leads
+    renderLeads();
+    updateAnalytics();
+
+    // Close modal
+    closeNewLeadModal();
+
+    // Show success toast
+    showToast('Lead created successfully!', 'success');
+
+    // Switch to leads tab if not already there
+    switchTab('leads');
+}
+
+// Progress Indicator Functions
+function updateProgressIndicator(currentStep) {
+    const steps = document.querySelectorAll('.progress-step');
+
+    steps.forEach((step, index) => {
+        const stepNumber = index + 1;
+
+        if (stepNumber < currentStep) {
+            // Completed steps
+            step.classList.remove('active');
+            step.classList.add('completed');
+            step.querySelector('.progress-step-circle').innerHTML = '✓';
+        } else if (stepNumber === currentStep) {
+            // Current active step
+            step.classList.add('active');
+            step.classList.remove('completed');
+            step.querySelector('.progress-step-circle').innerHTML = stepNumber;
+        } else {
+            // Future steps
+            step.classList.remove('active', 'completed');
+            step.querySelector('.progress-step-circle').innerHTML = stepNumber;
+        }
+    });
+}
+
+function resetProgressIndicator() {
+    updateProgressIndicator(1);
 }
 
 // Search for Parts (Simulated AI)
@@ -649,6 +816,9 @@ function searchForParts() {
         // Hide loading, show results
         document.getElementById('loadingSection').classList.add('hidden');
         document.getElementById('partsResults').classList.remove('hidden');
+
+        // Update progress to step 2 (Select Part)
+        updateProgressIndicator(2);
     }, 2000);
 }
 
@@ -720,12 +890,33 @@ function selectPart(partIndex) {
     // Close parts modal, open quote modal
     closePartsModal();
     document.getElementById('quoteModal').style.display = 'block';
+
+    // Update progress to step 3 (Review Quote)
+    // We need to update it on the quote modal, so let's add progress indicator there too
+    updateProgressIndicator(3);
 }
 
 // Generate Quote
 function generateQuote(part, laborCost) {
-    const subtotal = part.price + laborCost;
-    const tax = subtotal * 0.08; // 8% tax
+    // Store quote data for editing
+    currentQuoteData = {
+        partPrice: part.price,
+        laborCost: laborCost,
+        taxRate: 0.08,
+        discount: 0
+    };
+
+    // Reset edit mode
+    quoteEditMode = false;
+
+    // Render the quote
+    renderQuote(part);
+}
+
+// Render Quote HTML
+function renderQuote(part) {
+    const subtotal = currentQuoteData.partPrice + currentQuoteData.laborCost - currentQuoteData.discount;
+    const tax = subtotal * currentQuoteData.taxRate;
     const total = subtotal + tax;
 
     const validUntil = new Date();
@@ -775,6 +966,16 @@ function generateQuote(part, laborCost) {
             <div class="bg-white border-2 border-gray-200 rounded-lg p-6 mb-6">
                 <h3 class="text-lg font-bold text-gray-900 mb-4">QUOTE DETAILS</h3>
 
+                <!-- Edit Mode Notification -->
+                <div id="editModeNotice" class="hidden bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+                    <div class="flex items-center text-orange-800">
+                        <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                        </svg>
+                        <span class="font-semibold">Edit Mode Active - Adjust values below</span>
+                    </div>
+                </div>
+
                 <!-- Parts -->
                 <div class="mb-6">
                     <div class="bg-blue-50 rounded-lg p-4 mb-3">
@@ -785,7 +986,11 @@ function generateQuote(part, laborCost) {
                                 <p class="text-xs text-gray-500 mt-1">Delivery: ${part.delivery} | Stock: ${part.stock}</p>
                             </div>
                             <div class="text-right">
-                                <p class="text-xl font-bold text-gray-900">$${part.price.toFixed(2)}</p>
+                                <span id="partPriceView" class="text-xl font-bold text-gray-900">$${currentQuoteData.partPrice.toFixed(2)}</span>
+                                <input type="number" id="partPriceEdit" step="0.01" min="0"
+                                    value="${currentQuoteData.partPrice.toFixed(2)}"
+                                    onchange="recalculateQuote()"
+                                    class="hidden text-xl font-bold text-gray-900 border-2 border-orange-500 rounded px-2 py-1 w-32 text-right" />
                             </div>
                         </div>
                     </div>
@@ -795,7 +1000,27 @@ function generateQuote(part, laborCost) {
                 <div class="border-t pt-4 mb-4">
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-gray-700 font-semibold">Labor & Installation</span>
-                        <span class="text-lg font-semibold text-gray-900">$${laborCost.toFixed(2)}</span>
+                        <div class="text-right">
+                            <span id="laborCostView" class="text-lg font-semibold text-gray-900">$${currentQuoteData.laborCost.toFixed(2)}</span>
+                            <input type="number" id="laborCostEdit" step="0.01" min="0"
+                                value="${currentQuoteData.laborCost.toFixed(2)}"
+                                onchange="recalculateQuote()"
+                                class="hidden text-lg font-semibold text-gray-900 border-2 border-orange-500 rounded px-2 py-1 w-32 text-right" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Discount (only show in edit mode) -->
+                <div id="discountSection" class="hidden border-t pt-4 mb-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-700 font-semibold">Discount</span>
+                        <div class="text-right">
+                            <input type="number" id="discountEdit" step="0.01" min="0"
+                                value="${currentQuoteData.discount.toFixed(2)}"
+                                onchange="recalculateQuote()"
+                                placeholder="0.00"
+                                class="text-lg font-semibold text-gray-900 border-2 border-orange-500 rounded px-2 py-1 w-32 text-right" />
+                        </div>
                     </div>
                 </div>
 
@@ -803,11 +1028,18 @@ function generateQuote(part, laborCost) {
                 <div class="border-t pt-4 mb-2">
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-gray-700 font-semibold">Subtotal</span>
-                        <span class="text-lg font-semibold text-gray-900">$${subtotal.toFixed(2)}</span>
+                        <span class="text-lg font-semibold text-gray-900" id="quoteSubtotal">$${subtotal.toFixed(2)}</span>
                     </div>
                     <div class="flex justify-between items-center mb-4">
-                        <span class="text-gray-600">Tax (8%)</span>
-                        <span class="text-gray-900">$${tax.toFixed(2)}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-600">Tax</span>
+                            <span id="taxRateView" class="text-gray-600">(${(currentQuoteData.taxRate * 100).toFixed(0)}%)</span>
+                            <input type="number" id="taxRateEdit" step="0.01" min="0" max="0.5"
+                                value="${(currentQuoteData.taxRate * 100).toFixed(2)}"
+                                onchange="recalculateQuote()"
+                                class="hidden text-gray-600 border-2 border-orange-500 rounded px-2 py-1 w-20 text-center" />
+                        </div>
+                        <span class="text-gray-900" id="quoteTax">$${tax.toFixed(2)}</span>
                     </div>
                 </div>
 
@@ -815,7 +1047,7 @@ function generateQuote(part, laborCost) {
                 <div class="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg p-4">
                     <div class="flex justify-between items-center">
                         <span class="text-xl font-bold">TOTAL ESTIMATE</span>
-                        <span class="text-3xl font-bold">$${total.toFixed(2)}</span>
+                        <span class="text-3xl font-bold" id="quoteTotal">$${total.toFixed(2)}</span>
                     </div>
                 </div>
             </div>
@@ -854,6 +1086,83 @@ function generateQuote(part, laborCost) {
     window.currentQuoteTotal = total;
 }
 
+// Toggle Quote Edit Mode
+function toggleQuoteEditMode() {
+    quoteEditMode = !quoteEditMode;
+
+    const editBtn = document.getElementById('editQuoteBtnText');
+    const editNotice = document.getElementById('editModeNotice');
+    const discountSection = document.getElementById('discountSection');
+
+    // Toggle view/edit elements
+    const viewElements = ['partPriceView', 'laborCostView', 'taxRateView'];
+    const editElements = ['partPriceEdit', 'laborCostEdit', 'taxRateEdit'];
+
+    if (quoteEditMode) {
+        // Enter edit mode
+        editBtn.textContent = 'Done Editing';
+        editNotice?.classList.remove('hidden');
+        discountSection?.classList.remove('hidden');
+
+        viewElements.forEach(id => document.getElementById(id)?.classList.add('hidden'));
+        editElements.forEach(id => document.getElementById(id)?.classList.remove('hidden'));
+
+        document.getElementById('editQuoteBtn').classList.remove('bg-orange-500', 'hover:bg-orange-600');
+        document.getElementById('editQuoteBtn').classList.add('bg-green-600', 'hover:bg-green-700');
+    } else {
+        // Exit edit mode
+        editBtn.textContent = 'Edit Quote';
+        editNotice?.classList.add('hidden');
+        discountSection?.classList.add('hidden');
+
+        viewElements.forEach(id => document.getElementById(id)?.classList.remove('hidden'));
+        editElements.forEach(id => document.getElementById(id)?.classList.add('hidden'));
+
+        document.getElementById('editQuoteBtn').classList.remove('bg-green-600', 'hover:bg-green-700');
+        document.getElementById('editQuoteBtn').classList.add('bg-orange-500', 'hover:bg-orange-600');
+
+        // Update values from inputs
+        recalculateQuote();
+    }
+}
+
+// Recalculate Quote
+function recalculateQuote() {
+    // Get values from inputs
+    const partPriceInput = document.getElementById('partPriceEdit');
+    const laborCostInput = document.getElementById('laborCostEdit');
+    const discountInput = document.getElementById('discountEdit');
+    const taxRateInput = document.getElementById('taxRateEdit');
+
+    if (partPriceInput) currentQuoteData.partPrice = parseFloat(partPriceInput.value) || 0;
+    if (laborCostInput) currentQuoteData.laborCost = parseFloat(laborCostInput.value) || 0;
+    if (discountInput) currentQuoteData.discount = parseFloat(discountInput.value) || 0;
+    if (taxRateInput) currentQuoteData.taxRate = parseFloat(taxRateInput.value) / 100 || 0.08;
+
+    // Calculate new totals
+    const subtotal = currentQuoteData.partPrice + currentQuoteData.laborCost - currentQuoteData.discount;
+    const tax = subtotal * currentQuoteData.taxRate;
+    const total = subtotal + tax;
+
+    // Update display values
+    const partPriceView = document.getElementById('partPriceView');
+    const laborCostView = document.getElementById('laborCostView');
+    const taxRateView = document.getElementById('taxRateView');
+    const quoteSubtotal = document.getElementById('quoteSubtotal');
+    const quoteTax = document.getElementById('quoteTax');
+    const quoteTotal = document.getElementById('quoteTotal');
+
+    if (partPriceView) partPriceView.textContent = `$${currentQuoteData.partPrice.toFixed(2)}`;
+    if (laborCostView) laborCostView.textContent = `$${currentQuoteData.laborCost.toFixed(2)}`;
+    if (taxRateView) taxRateView.textContent = `(${(currentQuoteData.taxRate * 100).toFixed(0)}%)`;
+    if (quoteSubtotal) quoteSubtotal.textContent = `$${subtotal.toFixed(2)}`;
+    if (quoteTax) quoteTax.textContent = `$${tax.toFixed(2)}`;
+    if (quoteTotal) quoteTotal.textContent = `$${total.toFixed(2)}`;
+
+    // Update stored total
+    window.currentQuoteTotal = total;
+}
+
 // Close Quote Modal
 function closeQuoteModal() {
     document.getElementById('quoteModal').style.display = 'none';
@@ -861,24 +1170,30 @@ function closeQuoteModal() {
 
 // Send Quote
 function sendQuote() {
-    // Update lead status to "Quote Sent"
-    currentLead.status = 'Quote Sent';
-    currentLead.quoteAmount = window.currentQuoteTotal;
+    // Update progress to step 4 (Send)
+    updateProgressIndicator(4);
 
-    // Find and update the lead in the array
-    const leadIndex = allLeads.findIndex(l => l.id === currentLead.id);
-    if (leadIndex !== -1) {
-        allLeads[leadIndex] = currentLead;
-    }
+    // Show brief animation before closing
+    setTimeout(() => {
+        // Update lead status to "Quote Sent"
+        currentLead.status = 'Quote Sent';
+        currentLead.quoteAmount = window.currentQuoteTotal;
 
-    saveLeads();
-    renderLeads();
-    updateAnalytics();
+        // Find and update the lead in the array
+        const leadIndex = allLeads.findIndex(l => l.id === currentLead.id);
+        if (leadIndex !== -1) {
+            allLeads[leadIndex] = currentLead;
+        }
 
-    // Show success message
-    showToast('Quote sent successfully! Customer will receive it via email and SMS.', 'success');
+        saveLeads();
+        renderLeads();
+        updateAnalytics();
 
-    closeQuoteModal();
+        // Show success message
+        showToast('Quote sent successfully! Customer will receive it via email and SMS.', 'success');
+
+        closeQuoteModal();
+    }, 800);
 }
 
 // Update Analytics
