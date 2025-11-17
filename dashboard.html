@@ -323,6 +323,98 @@
             position: relative;
             z-index: 10001 !important;
         }
+
+        /* Progress Indicator Styles */
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding: 0 20px;
+        }
+
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            padding: 12px 8px;
+        }
+
+        .progress-step::before {
+            content: '';
+            position: absolute;
+            top: 22px;
+            left: 0;
+            right: 50%;
+            height: 3px;
+            background: #e5e7eb;
+            z-index: 0;
+        }
+
+        .progress-step:first-child::before {
+            display: none;
+        }
+
+        .progress-step.active::before,
+        .progress-step.completed::before {
+            background: #f97316;
+        }
+
+        .progress-step-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #9ca3af;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+            font-weight: 700;
+            font-size: 18px;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .progress-step.active .progress-step-circle {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+            transform: scale(1.1);
+        }
+
+        .progress-step.completed .progress-step-circle {
+            background: #10b981;
+            color: white;
+        }
+
+        .progress-step-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .progress-step.active .progress-step-label {
+            color: #f97316;
+        }
+
+        .progress-step.completed .progress-step-label {
+            color: #10b981;
+        }
+
+        @media (max-width: 640px) {
+            .progress-step-label {
+                font-size: 10px;
+            }
+
+            .progress-step-circle {
+                width: 36px;
+                height: 36px;
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -340,6 +432,12 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
+                    <button onclick="openNewLeadModal()" class="bg-gradient-to-r from-auto-orange to-orange-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:shadow-lg transition flex items-center gap-1">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        New Lead
+                    </button>
                     <a href="index.html" class="text-gray-700 hover:text-auto-blue px-3 py-2 rounded-md text-sm font-medium">Home</a>
                     <button onclick="restartTour()" class="text-auto-orange hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium flex items-center gap-1">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -539,17 +637,128 @@
         </div>
     </div>
 
+    <!-- New Lead Modal -->
+    <div id="newLeadModal" class="modal">
+        <div class="modal-content max-w-3xl">
+            <div class="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl z-10">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-bold text-gray-900">Create New Lead</h2>
+                    <button onclick="closeNewLeadModal()" class="text-gray-400 hover:text-gray-600 transition">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6">
+                <form id="newLeadForm" class="space-y-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="newCustomerName" class="block text-sm font-semibold text-gray-700 mb-2">Customer Name *</label>
+                            <input type="text" id="newCustomerName" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-auto-blue focus:border-transparent"
+                                placeholder="John Smith">
+                            <div class="text-red-600 text-sm mt-1 hidden" id="error-newCustomerName"></div>
+                        </div>
+                        <div>
+                            <label for="newPhone" class="block text-sm font-semibold text-gray-700 mb-2">Phone Number *</label>
+                            <input type="tel" id="newPhone" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-auto-blue focus:border-transparent"
+                                placeholder="(555) 123-4567">
+                            <div class="text-red-600 text-sm mt-1 hidden" id="error-newPhone"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="newEmail" class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                        <input type="email" id="newEmail"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-auto-blue focus:border-transparent"
+                            placeholder="john.smith@email.com">
+                        <div class="text-red-600 text-sm mt-1 hidden" id="error-newEmail"></div>
+                    </div>
+
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div>
+                            <label for="newCarMake" class="block text-sm font-semibold text-gray-700 mb-2">Car Make *</label>
+                            <input type="text" id="newCarMake" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-auto-blue focus:border-transparent"
+                                placeholder="Honda">
+                            <div class="text-red-600 text-sm mt-1 hidden" id="error-newCarMake"></div>
+                        </div>
+                        <div>
+                            <label for="newCarModel" class="block text-sm font-semibold text-gray-700 mb-2">Model *</label>
+                            <input type="text" id="newCarModel" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-auto-blue focus:border-transparent"
+                                placeholder="Accord">
+                            <div class="text-red-600 text-sm mt-1 hidden" id="error-newCarModel"></div>
+                        </div>
+                        <div>
+                            <label for="newCarYear" class="block text-sm font-semibold text-gray-700 mb-2">Year *</label>
+                            <input type="number" id="newCarYear" required min="1990" max="2025"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-auto-blue focus:border-transparent"
+                                placeholder="2018">
+                            <div class="text-red-600 text-sm mt-1 hidden" id="error-newCarYear"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="newIssue" class="block text-sm font-semibold text-gray-700 mb-2">Issue / Service Needed *</label>
+                        <textarea id="newIssue" required rows="4"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-auto-blue focus:border-transparent"
+                            placeholder="Describe the issue or service needed..."></textarea>
+                        <div class="text-red-600 text-sm mt-1 hidden" id="error-newIssue"></div>
+                    </div>
+
+                    <div class="flex gap-3 pt-4">
+                        <button type="submit"
+                            class="flex-1 bg-gradient-to-r from-auto-orange to-orange-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:shadow-lg transition flex items-center justify-center">
+                            <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                            Create Lead
+                        </button>
+                        <button type="button" onclick="closeNewLeadModal()"
+                            class="px-6 py-4 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Parts Finder Modal -->
     <div id="partsModal" class="modal">
         <div class="modal-content">
             <div class="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl z-10">
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between mb-4">
                     <h2 class="text-2xl font-bold text-gray-900">AI Parts Finder</h2>
                     <button onclick="closePartsModal()" class="text-gray-400 hover:text-gray-600 transition">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                     </button>
+                </div>
+
+                <!-- Progress Indicator -->
+                <div class="progress-steps">
+                    <div class="progress-step active" data-step="1">
+                        <div class="progress-step-circle">1</div>
+                        <div class="progress-step-label">Search</div>
+                    </div>
+                    <div class="progress-step" data-step="2">
+                        <div class="progress-step-circle">2</div>
+                        <div class="progress-step-label">Select Part</div>
+                    </div>
+                    <div class="progress-step" data-step="3">
+                        <div class="progress-step-circle">3</div>
+                        <div class="progress-step-label">Review Quote</div>
+                    </div>
+                    <div class="progress-step" data-step="4">
+                        <div class="progress-step-circle">4</div>
+                        <div class="progress-step-label">Send</div>
+                    </div>
                 </div>
             </div>
 
@@ -683,13 +892,33 @@
     <div id="quoteModal" class="modal">
         <div class="modal-content">
             <div class="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl z-10 no-print">
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between mb-4">
                     <h2 class="text-2xl font-bold text-gray-900">Quote Generated</h2>
                     <button onclick="closeQuoteModal()" class="text-gray-400 hover:text-gray-600 transition">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                     </button>
+                </div>
+
+                <!-- Progress Indicator -->
+                <div class="progress-steps">
+                    <div class="progress-step completed" data-step="1">
+                        <div class="progress-step-circle">✓</div>
+                        <div class="progress-step-label">Search</div>
+                    </div>
+                    <div class="progress-step completed" data-step="2">
+                        <div class="progress-step-circle">✓</div>
+                        <div class="progress-step-label">Select Part</div>
+                    </div>
+                    <div class="progress-step active" data-step="3">
+                        <div class="progress-step-circle">3</div>
+                        <div class="progress-step-label">Review Quote</div>
+                    </div>
+                    <div class="progress-step" data-step="4">
+                        <div class="progress-step-circle">4</div>
+                        <div class="progress-step-label">Send</div>
+                    </div>
                 </div>
             </div>
 
@@ -699,13 +928,19 @@
 
             <div class="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-4 sm:p-6 rounded-b-2xl no-print">
                 <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                    <button onclick="toggleQuoteEditMode()" id="editQuoteBtn" class="bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition flex items-center justify-center gap-2">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                        </svg>
+                        <span id="editQuoteBtnText">Edit Quote</span>
+                    </button>
                     <button onclick="sendQuote()" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition flex items-center justify-center gap-2">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                         </svg>
                         Send Quote to Customer
                     </button>
-                    <button onclick="window.print()" class="flex-1 bg-auto-blue text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-800 transition flex items-center justify-center gap-2">
+                    <button onclick="window.print()" class="bg-auto-blue text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-800 transition flex items-center justify-center gap-2">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                         </svg>
