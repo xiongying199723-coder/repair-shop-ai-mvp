@@ -11,409 +11,21 @@
             theme: {
                 extend: {
                     colors: {
-                        'auto-blue': '#1e40af',
-                        'auto-orange': '#f97316',
+                        'auto-blue': '#1D4ED8',
+                        'auto-orange': '#F97316',
                     }
                 }
             }
         }
     </script>
+    <link rel="stylesheet" href="styles.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        /* Dashboard-specific styles not in the main design system */
 
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-
+        /* Tab active state with custom color */
         .tab-active {
-            color: #f97316;
-            border-bottom: 3px solid #f97316;
-        }
-
-        .status-badge {
-            padding: 4px 12px;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .status-new { background: #dbeafe; color: #1e40af; }
-        .status-contacted { background: #fef3c7; color: #92400e; }
-        .status-quote-sent { background: #e0e7ff; color: #4338ca; }
-        .status-closed { background: #d1fae5; color: #065f46; }
-        .status-lost { background: #fee2e2; color: #991b1b; }
-
-        .card-hover {
-            transition: all 0.3s ease;
-        }
-
-        .card-hover:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
-        }
-
-        .loader {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #f97316;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.5);
-            animation: fadeIn 0.3s;
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: 2% auto;
-            padding: 0;
-            border-radius: 16px;
-            width: 90%;
-            max-width: 1200px;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: slideIn 0.3s;
-        }
-
-        @media (max-width: 768px) {
-            .modal-content {
-                width: 100%;
-                height: 100%;
-                max-height: 100vh;
-                margin: 0;
-                border-radius: 0;
-            }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideIn {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .best-value-badge {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-
-        .print-section {
-            display: none;
-        }
-
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            .print-section, .print-section * {
-                visibility: visible;
-            }
-            .print-section {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                display: block;
-            }
-            .no-print {
-                display: none !important;
-            }
-        }
-
-        /* Enhanced Animations */
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
-        }
-
-        @keyframes shimmer {
-            0% {
-                background-position: -1000px 0;
-            }
-            100% {
-                background-position: 1000px 0;
-            }
-        }
-
-        .animate-slide-in {
-            animation: slideInUp 0.4s ease-out;
-        }
-
-        .skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 1000px 100%;
-            animation: shimmer 2s infinite linear;
-        }
-
-        .new-lead-pulse {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-
-        /* Badge count styling */
-        .tab-badge {
-            background: #f97316;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            margin-left: 8px;
-        }
-
-        /* Onboarding Tour Styles */
-        .tour-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.75);
-            z-index: 9998;
-            transition: opacity 0.3s ease;
-        }
-
-        .tour-overlay.active {
-            display: block;
-        }
-
-        .tour-spotlight {
-            position: absolute;
-            border: 3px solid #f97316;
-            border-radius: 8px;
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75), 0 0 30px rgba(249, 115, 22, 0.5);
-            transition: all 0.4s ease;
-            z-index: 9999;
-            pointer-events: none;
-        }
-
-        .tour-tooltip {
-            position: fixed;
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            max-width: 400px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            z-index: 10000;
-            animation: tooltipSlideIn 0.3s ease-out;
-        }
-
-        @keyframes tooltipSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .tour-tooltip h3 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 8px;
-        }
-
-        .tour-tooltip p {
-            color: #6b7280;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-
-        .tour-tooltip-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-        }
-
-        .tour-progress {
-            font-size: 0.875rem;
-            color: #6b7280;
-            font-weight: 600;
-        }
-
-        .tour-buttons {
-            display: flex;
-            gap: 8px;
-        }
-
-        .tour-btn {
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: none;
-        }
-
-        .tour-btn-skip {
-            background: white;
-            color: #6b7280;
-            border: 2px solid #e5e7eb;
-        }
-
-        .tour-btn-skip:hover {
-            background: #f9fafb;
-            border-color: #d1d5db;
-        }
-
-        .tour-btn-prev {
-            background: #f3f4f6;
-            color: #374151;
-        }
-
-        .tour-btn-prev:hover {
-            background: #e5e7eb;
-        }
-
-        .tour-btn-next {
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            color: white;
-        }
-
-        .tour-btn-next:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
-        }
-
-        .tour-highlight {
-            position: relative;
-            z-index: 10001 !important;
-        }
-
-        /* Progress Indicator Styles */
-        .progress-steps {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            padding: 0 20px;
-        }
-
-        .progress-step {
-            flex: 1;
-            text-align: center;
-            position: relative;
-            padding: 12px 8px;
-        }
-
-        .progress-step::before {
-            content: '';
-            position: absolute;
-            top: 22px;
-            left: 0;
-            right: 50%;
-            height: 3px;
-            background: #e5e7eb;
-            z-index: 0;
-        }
-
-        .progress-step:first-child::before {
-            display: none;
-        }
-
-        .progress-step.active::before,
-        .progress-step.completed::before {
-            background: #f97316;
-        }
-
-        .progress-step-circle {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: #e5e7eb;
-            color: #9ca3af;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 8px;
-            font-weight: 700;
-            font-size: 18px;
-            position: relative;
-            z-index: 1;
-            transition: all 0.3s ease;
-        }
-
-        .progress-step.active .progress-step-circle {
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
-            transform: scale(1.1);
-        }
-
-        .progress-step.completed .progress-step-circle {
-            background: #10b981;
-            color: white;
-        }
-
-        .progress-step-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #6b7280;
-            margin-top: 4px;
-        }
-
-        .progress-step.active .progress-step-label {
-            color: #f97316;
-        }
-
-        .progress-step.completed .progress-step-label {
-            color: #10b981;
-        }
-
-        @media (max-width: 640px) {
-            .progress-step-label {
-                font-size: 10px;
-            }
-
-            .progress-step-circle {
-                width: 36px;
-                height: 36px;
-                font-size: 14px;
-            }
+            color: var(--color-accent);
+            border-bottom: 3px solid var(--color-accent);
         }
     </style>
 </head>
@@ -432,7 +44,7 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <button onclick="openNewLeadModal()" class="bg-gradient-to-r from-auto-orange to-orange-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:shadow-lg transition flex items-center gap-1">
+                    <button onclick="openNewLeadModal()" class="btn btn-primary text-sm px-4 py-2">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                         </svg>
@@ -711,15 +323,13 @@
                     </div>
 
                     <div class="flex gap-3 pt-4">
-                        <button type="submit"
-                            class="flex-1 bg-gradient-to-r from-auto-orange to-orange-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:shadow-lg transition flex items-center justify-center">
-                            <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button type="submit" class="flex-1 btn btn-primary text-lg px-8 py-4">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                             </svg>
                             Create Lead
                         </button>
-                        <button type="button" onclick="closeNewLeadModal()"
-                            class="px-6 py-4 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition">
+                        <button type="button" onclick="closeNewLeadModal()" class="px-6 py-4 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition">
                             Cancel
                         </button>
                     </div>
@@ -770,8 +380,8 @@
 
                 <!-- Search Button -->
                 <div id="searchSection" class="text-center mb-6">
-                    <button onclick="searchForParts()" class="bg-auto-orange text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-orange-600 transition inline-flex items-center">
-                        <svg class="mr-2 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button onclick="searchForParts()" class="btn btn-primary text-lg px-8 py-4">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
                         Search for Parts with AI
@@ -871,10 +481,10 @@
 
                 <!-- CTA Buttons -->
                 <div class="flex flex-col sm:flex-row gap-3">
-                    <button onclick="startTour()" class="flex-1 bg-gradient-to-r from-auto-orange to-orange-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition">
+                    <button onclick="startTour()" class="flex-1 btn btn-primary px-6 py-3">
                         Start Quick Tour
                     </button>
-                    <button onclick="closeWelcome()" class="flex-1 bg-white border-2 border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition">
+                    <button onclick="closeWelcome()" class="flex-1 btn btn-secondary px-6 py-3">
                         Skip, I'll Explore
                     </button>
                 </div>
@@ -928,19 +538,19 @@
 
             <div class="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-4 sm:p-6 rounded-b-2xl no-print">
                 <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                    <button onclick="toggleQuoteEditMode()" id="editQuoteBtn" class="bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition flex items-center justify-center gap-2">
+                    <button onclick="toggleQuoteEditMode()" id="editQuoteBtn" class="bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
                         </svg>
                         <span id="editQuoteBtnText">Edit Quote</span>
                     </button>
-                    <button onclick="sendQuote()" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition flex items-center justify-center gap-2">
+                    <button onclick="sendQuote()" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition shadow-md hover:shadow-success">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                         </svg>
                         Send Quote to Customer
                     </button>
-                    <button onclick="window.print()" class="bg-auto-blue text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-800 transition flex items-center justify-center gap-2">
+                    <button onclick="window.print()" class="bg-auto-blue text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-800 transition shadow-md hover:shadow-primary">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                         </svg>
