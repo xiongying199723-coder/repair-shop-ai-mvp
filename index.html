@@ -10,60 +10,14 @@
             theme: {
                 extend: {
                     colors: {
-                        'auto-blue': '#1e40af',
-                        'auto-orange': '#f97316',
+                        'auto-blue': '#1D4ED8',
+                        'auto-orange': '#F97316',
                     }
                 }
             }
         }
     </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-
-        .gradient-bg {
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-        }
-
-        .card-hover {
-            transition: all 0.3s ease;
-        }
-
-        .card-hover:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-        }
-
-        .hero-pattern {
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        }
-
-        .animate-fade-in {
-            animation: fadeIn 0.6s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(249, 115, 22, 0.4);
-        }
-
-        .feature-icon {
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-gray-50">
 
@@ -80,9 +34,9 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="#features" class="text-gray-700 hover:text-auto-blue px-3 py-2 rounded-md text-sm font-medium">Features</a>
-                    <a href="#demo" class="text-gray-700 hover:text-auto-blue px-3 py-2 rounded-md text-sm font-medium">Demo</a>
-                    <a href="dashboard.html" class="btn-primary text-white px-6 py-2 rounded-lg text-sm font-semibold">Try Dashboard</a>
+                    <a href="#features" class="text-gray-700 hover:text-auto-blue px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">Features</a>
+                    <a href="#demo" class="text-gray-700 hover:text-auto-blue px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">Demo</a>
+                    <a href="dashboard.html" class="btn btn-primary text-sm">Try Dashboard</a>
                 </div>
             </div>
         </div>
@@ -102,13 +56,13 @@
                     The complete AI-powered platform for auto repair shops to manage leads and source parts in seconds.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <a href="#demo" class="btn-primary text-white px-8 py-4 rounded-lg text-lg font-semibold inline-flex items-center justify-center">
+                    <a href="#demo" class="btn btn-primary text-lg px-8 py-4">
                         Try Demo Now
-                        <svg class="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                         </svg>
                     </a>
-                    <a href="dashboard.html" class="bg-white text-auto-blue px-8 py-4 rounded-lg text-lg font-semibold inline-flex items-center justify-center hover:bg-gray-100 transition">
+                    <a href="dashboard.html" class="btn btn-secondary text-lg px-8 py-4">
                         View Dashboard
                     </a>
                 </div>
@@ -126,8 +80,8 @@
 
             <div class="grid md:grid-cols-3 gap-8">
                 <!-- Benefit 1 -->
-                <div class="card-hover bg-gradient-to-br from-blue-50 to-white rounded-2xl p-8 border border-blue-100">
-                    <div class="feature-icon w-16 h-16 rounded-xl flex items-center justify-center mb-6">
+                <div class="card card-hover bg-gradient-to-br from-blue-50 to-white p-8 border border-blue-100">
+                    <div class="feature-icon w-16 h-16 flex items-center justify-center mb-6">
                         <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                         </svg>
@@ -139,8 +93,8 @@
                 </div>
 
                 <!-- Benefit 2 -->
-                <div class="card-hover bg-gradient-to-br from-orange-50 to-white rounded-2xl p-8 border border-orange-100">
-                    <div class="feature-icon w-16 h-16 rounded-xl flex items-center justify-center mb-6">
+                <div class="card card-hover bg-gradient-to-br from-orange-50 to-white p-8 border border-orange-100">
+                    <div class="feature-icon w-16 h-16 flex items-center justify-center mb-6">
                         <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
@@ -152,8 +106,8 @@
                 </div>
 
                 <!-- Benefit 3 -->
-                <div class="card-hover bg-gradient-to-br from-green-50 to-white rounded-2xl p-8 border border-green-100">
-                    <div class="feature-icon w-16 h-16 rounded-xl flex items-center justify-center mb-6">
+                <div class="card card-hover bg-gradient-to-br from-green-50 to-white p-8 border border-green-100">
+                    <div class="feature-icon w-16 h-16 flex items-center justify-center mb-6">
                         <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
@@ -251,10 +205,9 @@
                             placeholder="Describe the issue or service needed..."></textarea>
                     </div>
 
-                    <button type="submit"
-                        class="w-full btn-primary text-white px-8 py-4 rounded-lg text-lg font-semibold flex items-center justify-center">
+                    <button type="submit" class="w-full btn btn-primary text-lg px-8 py-4">
                         Submit Inquiry
-                        <svg class="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                         </svg>
                     </button>
@@ -286,9 +239,9 @@
             <p class="text-xl text-blue-100 mb-8">
                 Join hundreds of auto repair shops already using Conneverse to grow their business
             </p>
-            <a href="dashboard.html" class="btn-primary text-white px-8 py-4 rounded-lg text-lg font-semibold inline-flex items-center">
+            <a href="dashboard.html" class="btn btn-primary text-lg px-8 py-4">
                 Get Started Free
-                <svg class="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                 </svg>
             </a>
