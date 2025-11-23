@@ -26,7 +26,25 @@ const sampleLeads = [
         issue: "Needs new brake pads. Hearing squeaking noise when braking, especially at low speeds.",
         status: "New",
         timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        quoteAmount: null
+        quoteAmount: null,
+        communications: [
+            {
+                id: 1698234567890,
+                timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+                sender: "client",
+                senderName: "John Smith",
+                message: "Needs new brake pads. Hearing squeaking noise when braking, especially at low speeds.",
+                type: "initial_inquiry"
+            },
+            {
+                id: 1698234567891,
+                timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 1000).toISOString(),
+                sender: "dealer",
+                senderName: "Conneverse Auto Shop",
+                message: "Thanks for using Conneverse Auto Shop! We are working on your case and evaluating the issue. We'll get back to you shortly with a quote.",
+                type: "auto_reply"
+            }
+        ]
     },
     {
         id: 1698234567891,
@@ -39,7 +57,25 @@ const sampleLeads = [
         issue: "Regular oil change needed plus new oil filter. Due for 30,000 mile service.",
         status: "Contacted",
         timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        quoteAmount: null
+        quoteAmount: null,
+        communications: [
+            {
+                id: 1698234567892,
+                timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+                sender: "client",
+                senderName: "Sarah Johnson",
+                message: "Regular oil change needed plus new oil filter. Due for 30,000 mile service.",
+                type: "initial_inquiry"
+            },
+            {
+                id: 1698234567893,
+                timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000 + 1000).toISOString(),
+                sender: "dealer",
+                senderName: "Conneverse Auto Shop",
+                message: "Thanks for using Conneverse Auto Shop! We are working on your case and evaluating the issue. We'll get back to you shortly with a quote.",
+                type: "auto_reply"
+            }
+        ]
     },
     {
         id: 1698234567892,
@@ -52,7 +88,42 @@ const sampleLeads = [
         issue: "Battery light is on. Truck is having trouble starting. Might need a new alternator.",
         status: "Quote Sent",
         timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-        quoteAmount: 485.00
+        quoteAmount: 485.00,
+        communications: [
+            {
+                id: 1698234567894,
+                timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+                sender: "client",
+                senderName: "Mike Davis",
+                message: "Battery light is on. Truck is having trouble starting. Might need a new alternator.",
+                type: "initial_inquiry"
+            },
+            {
+                id: 1698234567895,
+                timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000 + 1000).toISOString(),
+                sender: "dealer",
+                senderName: "Conneverse Auto Shop",
+                message: "Thanks for using Conneverse Auto Shop! We are working on your case and evaluating the issue. We'll get back to you shortly with a quote.",
+                type: "auto_reply"
+            },
+            {
+                id: 1698234567896,
+                timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000 + 3600000).toISOString(),
+                sender: "system",
+                senderName: "System",
+                message: "Searching for parts across multiple suppliers...",
+                type: "parts_search"
+            },
+            {
+                id: 1698234567897,
+                timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000 + 7200000).toISOString(),
+                sender: "dealer",
+                senderName: "Conneverse Auto Shop",
+                message: "We have your quote ready! Please review:\n\n📋 2019 Ford F-150 - Alternator Replacement\n💰 Total: $485.00 (Parts + Labor)\n\nThis includes a remanufactured Bosch alternator with 1-2 day delivery. The quote is valid for 7 days.",
+                type: "quote_sent",
+                quoteAmount: 485.00
+            }
+        ]
     },
     {
         id: 1698234567893,
@@ -65,7 +136,25 @@ const sampleLeads = [
         issue: "Air conditioning not working properly. Blowing warm air instead of cold.",
         status: "New",
         timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-        quoteAmount: null
+        quoteAmount: null,
+        communications: [
+            {
+                id: 1698234567898,
+                timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+                sender: "client",
+                senderName: "Emily Rodriguez",
+                message: "Air conditioning not working properly. Blowing warm air instead of cold.",
+                type: "initial_inquiry"
+            },
+            {
+                id: 1698234567899,
+                timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 1000).toISOString(),
+                sender: "dealer",
+                senderName: "Conneverse Auto Shop",
+                message: "Thanks for using Conneverse Auto Shop! We are working on your case and evaluating the issue. We'll get back to you shortly with a quote.",
+                type: "auto_reply"
+            }
+        ]
     }
 ];
 
@@ -514,6 +603,12 @@ function renderLeads() {
 
             <!-- Secondary Actions -->
             <div class="flex flex-col sm:flex-row gap-2">
+                <button onclick="openCommunicationModal(${lead.id})" class="flex-1 bg-white border-2 border-purple-600 text-purple-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-purple-50 transition flex items-center justify-center gap-1">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                    Messages ${lead.communications && lead.communications.length > 2 ? `<span class="bg-purple-500 text-white text-xs rounded-full px-2 ml-1">${lead.communications.length}</span>` : ''}
+                </button>
                 <button onclick="updateLeadStatus(${lead.id})" class="flex-1 bg-white border-2 border-blue-600 text-blue-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-50 transition">
                     ${lead.status === 'New' ? 'Mark Contacted' : lead.status === 'Contacted' ? 'Mark Quote Sent' : 'Update Status'}
                 </button>
@@ -715,19 +810,41 @@ function handleNewLeadSubmit(event) {
         return; // Don't submit if validation fails
     }
 
-    // Create new lead object
+    const customerName = document.getElementById('newCustomerName').value.trim();
+    const issue = document.getElementById('newIssue').value.trim();
+    const timestamp = new Date().toISOString();
+
+    // Create new lead object with communications
     const newLead = {
         id: Date.now(),
-        customerName: document.getElementById('newCustomerName').value.trim(),
+        customerName: customerName,
         phone: document.getElementById('newPhone').value.trim(),
         email: document.getElementById('newEmail').value.trim(),
         carMake: document.getElementById('newCarMake').value.trim(),
         carModel: document.getElementById('newCarModel').value.trim(),
         carYear: document.getElementById('newCarYear').value.trim(),
-        issue: document.getElementById('newIssue').value.trim(),
+        issue: issue,
         status: 'New',
-        timestamp: new Date().toISOString(),
-        quoteAmount: null
+        timestamp: timestamp,
+        quoteAmount: null,
+        communications: [
+            {
+                id: Date.now(),
+                timestamp: timestamp,
+                sender: 'client',
+                senderName: customerName,
+                message: issue,
+                type: 'initial_inquiry'
+            },
+            {
+                id: Date.now() + 1,
+                timestamp: timestamp,
+                sender: 'dealer',
+                senderName: 'Conneverse Auto Shop',
+                message: 'Thanks for using Conneverse Auto Shop! We are working on your case and evaluating the issue. We\'ll get back to you shortly with a quote.',
+                type: 'auto_reply'
+            }
+        ]
     };
 
     // Add to leads array
@@ -779,8 +896,132 @@ function resetProgressIndicator() {
     updateProgressIndicator(1);
 }
 
+// Communication Helper Functions
+function addCommunication(leadId, commData) {
+    const lead = allLeads.find(l => l.id === leadId);
+    if (!lead) return;
+    
+    if (!lead.communications) {
+        lead.communications = [];
+    }
+    
+    const communication = {
+        id: Date.now(),
+        timestamp: new Date().toISOString(),
+        sender: commData.sender,
+        senderName: commData.senderName,
+        message: commData.message,
+        type: commData.type,
+        ...commData
+    };
+    
+    lead.communications.push(communication);
+    saveLeads();
+}
+
+function openCommunicationModal(leadId) {
+    const lead = allLeads.find(l => l.id === leadId);
+    console.log(lead, leadId)
+    if (!lead) return;
+    
+    // Ensure communications exist
+    if (!lead.communications || lead.communications.length === 0) {
+        lead.communications = [
+            {
+                id: Date.now(),
+                timestamp: lead.timestamp,
+                sender: 'client',
+                senderName: lead.customerName,
+                message: lead.issue,
+                type: 'initial_inquiry'
+            },
+            {
+                id: Date.now() + 1,
+                timestamp: lead.timestamp,
+                sender: 'dealer',
+                senderName: 'Conneverse Auto Shop',
+                message: 'Thanks for using Conneverse Auto Shop! We are working on your case and evaluating the issue. We\'ll get back to you shortly with a quote.',
+                type: 'auto_reply'
+            }
+        ];
+        saveLeads();
+    }
+    
+    currentLead = lead;
+    
+    // Set lead info
+    document.getElementById('commLeadName').textContent = lead.customerName;
+    document.getElementById('commLeadVehicle').textContent = `${lead.carYear} ${lead.carMake} ${lead.carModel}`;
+    
+    // Render communications
+    renderCommunications(leadId);
+    
+    // Show modal with animation
+    const modal = document.getElementById('communicationModal');
+    const panel = document.getElementById('communicationPanel');
+    modal.classList.remove('hidden');
+    panel.style.transform = 'translateX(100%)';
+    
+    setTimeout(() => {
+        panel.style.transform = 'translateX(0)';
+    }, 10);
+}
+
+function closeCommunicationModal() {
+    const modal = document.getElementById('communicationModal');
+    const panel = document.getElementById('communicationPanel');
+    
+    panel.style.transform = 'translateX(100%)';
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        currentLead = null;
+    }, 300);
+}
+
+function renderCommunications(leadId) {
+    const lead = allLeads.find(l => l.id === leadId);
+    if (!lead || !lead.communications) return;
+    
+    const container = document.getElementById('communicationTimeline');
+    
+    const messages = lead.communications.map(comm => {
+        const isClient = comm.sender === 'client';
+        const isDealer = comm.sender === 'dealer';
+        const bgColor = isClient ? 'bg-blue-50 border-blue-200' : 
+                       isDealer ? 'bg-green-50 border-green-200' : 
+                       'bg-gray-50 border-gray-200';
+        const icon = isClient ? '🔵' : isDealer ? '🟢' : '🟠';
+        
+        return `
+            <div class="border-l-4 ${bgColor} rounded-lg p-4">
+                <div class="flex items-start gap-3">
+                    <span class="text-2xl">${icon}</span>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="font-semibold text-gray-900">${comm.senderName}</span>
+                            <span class="text-sm text-gray-500">${formatDate(comm.timestamp)}</span>
+                        </div>
+                        <p class="text-gray-700 whitespace-pre-line">${comm.message}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = messages;
+}
+
 // Search for Parts (Simulated AI)
 function searchForParts() {
+    // Add system communication
+    addCommunication(currentLead.id, {
+        sender: 'system',
+        senderName: 'System',
+        message: 'Searching for parts across multiple suppliers...',
+        type: 'parts_search'
+    });
+    
     // Hide search button, show loading
     document.getElementById('searchSection').classList.add('hidden');
     document.getElementById('loadingSection').classList.remove('hidden');
@@ -1223,6 +1464,15 @@ function backToParts() {
 
 // Send Quote
 function sendQuote() {
+    // Add quote communication
+    addCommunication(currentLead.id, {
+        sender: 'dealer',
+        senderName: 'Conneverse Auto Shop',
+        message: `We have your quote ready! Please review:\n\n📋 ${currentLead.carYear} ${currentLead.carMake} ${currentLead.carModel}\n💰 Total: $${window.currentQuoteTotal.toFixed(2)} (Parts + Labor)\n\n[View Full Quote]`,
+        type: 'quote_sent',
+        quoteAmount: window.currentQuoteTotal
+    });
+    
     // Update progress to step 4 (Send)
     updateProgressIndicator(4);
 
