@@ -600,7 +600,7 @@ function deleteLead(leadId) {
 }
 
 // Open Parts Modal
-function openPartsModal(leadId) {
+function openPartsModal(leadId, skipReset = false) {
     currentLead = allLeads.find(l => l.id === leadId);
     if (!currentLead) return;
 
@@ -630,13 +630,13 @@ function openPartsModal(leadId) {
         </div>
     `;
 
-    // Reset modal state
-    document.getElementById('searchSection').classList.remove('hidden');
-    document.getElementById('loadingSection').classList.add('hidden');
-    document.getElementById('partsResults').classList.add('hidden');
-
-    // Reset progress indicator to step 1
-    resetProgressIndicator();
+    // Only reset modal state if not coming from "Back to Parts"
+    if (!skipReset) {
+        document.getElementById('searchSection').classList.remove('hidden');
+        document.getElementById('loadingSection').classList.add('hidden');
+        document.getElementById('partsResults').classList.add('hidden');
+        resetProgressIndicator();
+    }
 
     modal.style.display = 'block';
 }
@@ -880,24 +880,32 @@ function renderParts(parts, laborCost) {
 
 // Select Part and Generate Quote
 function selectPart(partIndex) {
+    console.log('selectPart called with index:', partIndex);
     const parts = window.currentParts;
     const laborCost = window.currentLabor;
     currentPart = parts[partIndex];
+    console.log('Selected part:', currentPart);
+    console.log('Labor cost:', laborCost);
 
     // Generate quote
     generateQuote(currentPart, laborCost);
 
-    // Close parts modal, open quote modal
-    closePartsModal();
+    // Close parts modal (but keep currentLead), open quote modal
+    document.getElementById('partsModal').style.display = 'none';
+    // DON'T call closePartsModal() here because it clears currentLead
     document.getElementById('quoteModal').style.display = 'block';
 
     // Update progress to step 3 (Review Quote)
-    // We need to update it on the quote modal, so let's add progress indicator there too
     updateProgressIndicator(3);
 }
 
 // Generate Quote
 function generateQuote(part, laborCost) {
+    console.log('generateQuote called');
+    console.log('Part:', part);
+    console.log('Labor cost:', laborCost);
+    console.log('currentLead:', currentLead);
+    
     // Store quote data for editing
     currentQuoteData = {
         partPrice: part.price,
@@ -905,6 +913,7 @@ function generateQuote(part, laborCost) {
         taxRate: 0.08,
         discount: 0
     };
+    console.log('currentQuoteData:', currentQuoteData);
 
     // Reset edit mode
     quoteEditMode = false;
@@ -915,9 +924,14 @@ function generateQuote(part, laborCost) {
 
 // Render Quote HTML
 function renderQuote(part) {
+    console.log('renderQuote called with part:', part);
+    console.log('currentLead in renderQuote:', currentLead);
+    
     const subtotal = currentQuoteData.partPrice + currentQuoteData.laborCost - currentQuoteData.discount;
     const tax = subtotal * currentQuoteData.taxRate;
     const total = subtotal + tax;
+    
+    console.log('Calculated totals - Subtotal:', subtotal, 'Tax:', tax, 'Total:', total);
 
     const validUntil = new Date();
     validUntil.setDate(validUntil.getDate() + 7);
@@ -1080,10 +1094,21 @@ function renderQuote(part) {
         </div>
     `;
 
-    document.getElementById('quoteContent').innerHTML = quoteHTML;
+    console.log('About to set innerHTML. quoteHTML length:', quoteHTML.length);
+    const quoteContentDiv = document.getElementById('quoteContent');
+    console.log('quoteContent div exists:', !!quoteContentDiv);
+    
+    if (quoteContentDiv) {
+        quoteContentDiv.innerHTML = quoteHTML;
+        console.log('innerHTML set. New content length:', quoteContentDiv.innerHTML.length);
+        console.log('quoteContent div display style:', window.getComputedStyle(quoteContentDiv).display);
+    } else {
+        console.error('quoteContent div not found!');
+    }
 
     // Store quote amount for later
     window.currentQuoteTotal = total;
+    console.log('Quote rendering complete. Total:', total);
 }
 
 // Toggle Quote Edit Mode
@@ -1166,6 +1191,34 @@ function recalculateQuote() {
 // Close Quote Modal
 function closeQuoteModal() {
     document.getElementById('quoteModal').style.display = 'none';
+    // Don't clear currentLead here - we need it for backToParts()
+}
+
+// Back to Parts Selection
+function backToParts() {
+    console.log('backToParts called');
+    console.log('currentLead:', currentLead);
+    console.log('window.currentParts:', window.currentParts);
+    console.log('window.currentLabor:', window.currentLabor);
+    
+    // Close quote modal
+    closeQuoteModal();
+    
+    // Reopen parts modal with the same lead, skipping the reset
+    if (currentLead && window.currentParts && window.currentLabor) {
+        console.log('Opening parts modal with skipReset=true');
+        // Show the parts that were already searched
+        openPartsModal(currentLead.id, true); // Pass true to skip reset
+        document.getElementById('searchSection').classList.add('hidden');
+        document.getElementById('partsResults').classList.remove('hidden');
+        updateProgressIndicator(2);
+    } else if (currentLead) {
+        console.log('Opening parts modal normally (no parts searched yet)');
+        // If no parts were searched yet, open normally
+        openPartsModal(currentLead.id);
+    } else {
+        console.error('currentLead is null! Cannot open parts modal');
+    }
 }
 
 // Send Quote
