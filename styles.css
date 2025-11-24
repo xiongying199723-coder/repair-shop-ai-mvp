@@ -776,9 +776,6 @@ select:focus {
 /* ============================================
    12. PRINT STYLES
    ============================================ */
-.print-section {
-  display: none;
-}
 
 @media print {
   body * {

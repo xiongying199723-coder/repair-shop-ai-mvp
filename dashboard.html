@@ -533,29 +533,65 @@
             </div>
 
             <div class="p-6" id="quoteContent">
+                show quote content
                 <!-- Will be populated by JavaScript -->
             </div>
 
             <div class="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-4 sm:p-6 rounded-b-2xl no-print">
                 <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                    <button onclick="toggleQuoteEditMode()" id="editQuoteBtn" class="bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition">
+                    <button onclick="backToParts()" class="bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition flex items-center justify-center gap-2">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Back to Select Parts
+                    </button>
+                    <button onclick="toggleQuoteEditMode()" id="editQuoteBtn" class="bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition flex items-center justify-center gap-2">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
                         </svg>
                         <span id="editQuoteBtnText">Edit Quote</span>
                     </button>
-                    <button onclick="sendQuote()" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition shadow-md hover:shadow-success">
+                    <button onclick="sendQuote()" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition shadow-md hover:shadow-success flex items-center justify-center gap-2">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                         </svg>
                         Send Quote to Customer
                     </button>
-                    <button onclick="window.print()" class="bg-auto-blue text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-800 transition shadow-md hover:shadow-primary">
+                    <button onclick="window.print()" class="bg-auto-blue text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-800 transition shadow-md hover:shadow-primary flex items-center justify-center gap-2">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                         </svg>
                         Download PDF
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Communication Side Panel -->
+    <div id="communicationModal" class="fixed inset-0 z-50 hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black bg-opacity-30" onclick="closeCommunicationModal()"></div>
+        
+        <!-- Side Panel -->
+        <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl transform transition-transform duration-300 ease-in-out" id="communicationPanel">
+            <div class="flex flex-col h-full">
+                <!-- Header -->
+                <div class="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <h2 class="text-2xl font-bold" id="commLeadName"></h2>
+                        <button onclick="closeCommunicationModal()" class="text-white hover:text-gray-200 transition">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <p class="text-purple-100" id="commLeadVehicle"></p>
+                </div>
+
+                <!-- Messages Timeline -->
+                <div class="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50" id="communicationTimeline">
+                    <!-- Messages will be rendered here -->
                 </div>
             </div>
         </div>
