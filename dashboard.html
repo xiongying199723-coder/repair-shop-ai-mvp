@@ -75,13 +75,23 @@
         <!-- Tabs -->
         <div class="bg-white rounded-lg shadow-sm mb-6">
             <div class="border-b border-gray-200">
-                <nav class="flex -mb-px">
-                    <button onclick="switchTab('leads')" id="tab-leads" class="tab-active px-6 py-4 text-sm font-semibold border-b-3 transition flex items-center">
-                        Leads
-                        <span id="leads-badge" class="tab-badge">0</span>
-                    </button>
-                    <button onclick="switchTab('analytics')" id="tab-analytics" class="px-6 py-4 text-sm font-semibold text-gray-600 hover:text-gray-900 border-b-3 border-transparent transition">
-                        Analytics
+                <nav class="flex -mb-px justify-between items-center pr-6">
+                    <div class="flex -mb-px">
+                        <button onclick="switchTab('leads')" id="tab-leads" class="tab-active px-6 py-4 text-sm font-semibold border-b-3 transition flex items-center">
+                            Leads
+                            <span id="leads-badge" class="tab-badge">0</span>
+                        </button>
+                        <button onclick="switchTab('analytics')" id="tab-analytics" class="px-6 py-4 text-sm font-semibold text-gray-600 hover:text-gray-900 border-b-3 border-transparent transition">
+                            Analytics
+                        </button>
+                    </div>
+                    <!-- Missed Calls Button -->
+                    <button onclick="openMissedCallsModal()" id="missedCallsBtn" class="missed-calls-btn flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-200 relative">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                        </svg>
+                        Missed Calls
+                        <span id="missedCallsBadge" class="missed-calls-badge">0</span>
                     </button>
                 </nav>
             </div>
@@ -572,7 +582,7 @@
     <div id="communicationModal" class="fixed inset-0 z-50 hidden">
         <!-- Backdrop -->
         <div class="absolute inset-0 bg-black bg-opacity-30" onclick="closeCommunicationModal()"></div>
-        
+
         <!-- Side Panel -->
         <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl transform transition-transform duration-300 ease-in-out" id="communicationPanel">
             <div class="flex flex-col h-full">
@@ -592,6 +602,47 @@
                 <!-- Messages Timeline -->
                 <div class="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50" id="communicationTimeline">
                     <!-- Messages will be rendered here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Missed Calls Modal -->
+    <div id="missedCallsModal" class="modal">
+        <div class="modal-content max-w-5xl">
+            <!-- Header -->
+            <div class="sticky top-0 bg-gradient-to-r from-orange-500 to-red-500 text-white p-6 rounded-t-2xl z-10">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-3xl font-bold flex items-center gap-3">
+                            <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                            </svg>
+                            Missed Calls - AI Voice Agent
+                        </h2>
+                        <p class="text-orange-100 mt-2">Calls captured when you were busy</p>
+                    </div>
+                    <button onclick="closeMissedCallsModal()" class="text-white hover:text-gray-200 transition">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Missed Calls List -->
+            <div class="p-6 bg-gray-50">
+                <div id="missedCallsContainer" class="space-y-4">
+                    <!-- Missed call cards will be rendered here by JavaScript -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="missedCallsEmptyState" class="hidden text-center py-16">
+                    <svg class="mx-auto h-24 w-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                    </svg>
+                    <h3 class="mt-4 text-lg font-medium text-gray-900">No Missed Calls</h3>
+                    <p class="mt-2 text-gray-500">All calls have been reviewed and processed!</p>
                 </div>
             </div>
         </div>

@@ -4,6 +4,7 @@
 let currentLead = null;
 let currentPart = null;
 let allLeads = [];
+let allMissedCalls = [];
 let partsSearchHistory = [];
 let quoteEditMode = false;
 let currentQuoteData = {
@@ -155,6 +156,177 @@ const sampleLeads = [
                 type: "auto_reply"
             }
         ]
+    }
+];
+
+// Sample Missed Calls Data
+const sampleMissedCalls = [
+    {
+        id: "call-001",
+        timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), // 3 hours ago
+        phone: "+1 (617) 555-0123",
+        duration: "2m 34s",
+        status: "new",
+        aiSummary: {
+            customerName: "Sarah Johnson",
+            vehicle: {
+                year: 2018,
+                make: "Honda",
+                model: "Accord"
+            },
+            serviceNeeded: "Brake noise and vibration when stopping",
+            urgency: "urgent",
+            notes: "Customer mentioned brakes making grinding noise for past 3 days. Concerned about safety. Would like appointment this week if possible."
+        },
+        transcript: [
+            { speaker: "AI", text: "Hello, thank you for calling Conneverse Auto Repair. I'm the AI assistant. How can I help you today?" },
+            { speaker: "Customer", text: "Hi, my brakes are making a weird grinding noise." },
+            { speaker: "AI", text: "I can help you with that. What's your name?" },
+            { speaker: "Customer", text: "Sarah Johnson." },
+            { speaker: "AI", text: "Thanks Sarah. Can you tell me what kind of vehicle you have?" },
+            { speaker: "Customer", text: "It's a 2018 Honda Accord." },
+            { speaker: "AI", text: "Got it. When did you first notice the grinding noise?" },
+            { speaker: "Customer", text: "About 3 days ago. It's getting worse and I'm worried it's not safe." },
+            { speaker: "AI", text: "I understand your concern. Safety is our top priority. Can I get your phone number so we can follow up?" },
+            { speaker: "Customer", text: "Sure, it's 617-555-0123." },
+            { speaker: "AI", text: "Perfect. I've logged your information. We'll review this and get back to you within the hour with options for this week. Is there anything else I can help with?" },
+            { speaker: "Customer", text: "No, that's all. Thank you!" }
+        ],
+        audioUrl: null
+    },
+    {
+        id: "call-002",
+        timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+        phone: "+1 (508) 555-0198",
+        duration: "1m 45s",
+        status: "new",
+        aiSummary: {
+            customerName: "Michael Chen",
+            vehicle: {
+                year: 2020,
+                make: "Toyota",
+                model: "RAV4"
+            },
+            serviceNeeded: "Check engine light is on",
+            urgency: "standard",
+            notes: "Check engine light came on yesterday. No noticeable performance issues. Customer wants diagnostic before the weekend."
+        },
+        transcript: [
+            { speaker: "AI", text: "Hello, thank you for calling Conneverse Auto Repair. I'm the AI assistant. How can I help you today?" },
+            { speaker: "Customer", text: "My check engine light just came on." },
+            { speaker: "AI", text: "I can help with that. What's your name?" },
+            { speaker: "Customer", text: "Michael Chen." },
+            { speaker: "AI", text: "Thanks Michael. What vehicle are you driving?" },
+            { speaker: "Customer", text: "2020 Toyota RAV4." },
+            { speaker: "AI", text: "Is the vehicle running normally otherwise?" },
+            { speaker: "Customer", text: "Yeah, seems fine. Just the light is on." },
+            { speaker: "AI", text: "Understood. We can run a diagnostic to see what's causing it. What's a good phone number to reach you?" },
+            { speaker: "Customer", text: "508-555-0198." },
+            { speaker: "AI", text: "Perfect. We'll review this and get back to you with diagnostic options. Thanks for calling!" }
+        ],
+        audioUrl: null
+    },
+    {
+        id: "call-003",
+        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+        phone: "+1 (781) 555-0245",
+        duration: "3m 12s",
+        status: "reviewed",
+        aiSummary: {
+            customerName: "Jennifer Martinez",
+            vehicle: {
+                year: 2016,
+                make: "Ford",
+                model: "Explorer"
+            },
+            serviceNeeded: "Transmission slipping, rough shifting",
+            urgency: "urgent",
+            notes: "Transmission has been slipping when accelerating. Shifting feels rough between gears. Issue started 2 weeks ago and getting progressively worse."
+        },
+        transcript: [
+            { speaker: "AI", text: "Hello, thank you for calling Conneverse Auto Repair. I'm the AI assistant. How can I help you today?" },
+            { speaker: "Customer", text: "I'm having transmission problems with my Ford Explorer." },
+            { speaker: "AI", text: "I'm sorry to hear that. Can you describe what's happening?" },
+            { speaker: "Customer", text: "It's slipping when I accelerate and the shifts feel really rough." },
+            { speaker: "AI", text: "That does sound concerning. What's your name?" },
+            { speaker: "Customer", text: "Jennifer Martinez." },
+            { speaker: "AI", text: "Thanks Jennifer. What year is your Explorer?" },
+            { speaker: "Customer", text: "It's a 2016." },
+            { speaker: "AI", text: "How long has this been happening?" },
+            { speaker: "Customer", text: "Started about 2 weeks ago and it's getting worse." },
+            { speaker: "AI", text: "I understand. This definitely needs attention. What's your phone number?" },
+            { speaker: "Customer", text: "781-555-0245." },
+            { speaker: "AI", text: "Got it. We'll have a transmission specialist review this and call you back today with options. We take transmission issues very seriously." },
+            { speaker: "Customer", text: "Thank you, I appreciate it." }
+        ],
+        audioUrl: null
+    },
+    {
+        id: "call-004",
+        timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
+        phone: "+1 (339) 555-0167",
+        duration: "1m 58s",
+        status: "new",
+        aiSummary: {
+            customerName: "Robert Thompson",
+            vehicle: {
+                year: 2019,
+                make: "Chevrolet",
+                model: "Silverado"
+            },
+            serviceNeeded: "Oil change and tire rotation",
+            urgency: "flexible",
+            notes: "Regular maintenance due. Customer flexible on scheduling, prefers sometime next week."
+        },
+        transcript: [
+            { speaker: "AI", text: "Hello, thank you for calling Conneverse Auto Repair. I'm the AI assistant. How can I help you today?" },
+            { speaker: "Customer", text: "I need an oil change and tire rotation." },
+            { speaker: "AI", text: "Happy to help with that. What's your name?" },
+            { speaker: "Customer", text: "Robert Thompson." },
+            { speaker: "AI", text: "Thanks Robert. What vehicle?" },
+            { speaker: "Customer", text: "2019 Chevy Silverado." },
+            { speaker: "AI", text: "Perfect. When are you looking to come in?" },
+            { speaker: "Customer", text: "Sometime next week works for me, I'm flexible." },
+            { speaker: "AI", text: "Great. Can I get your phone number?" },
+            { speaker: "Customer", text: "339-555-0167." },
+            { speaker: "AI", text: "Excellent. We'll call you back with available times for next week. Thanks for calling Conneverse!" }
+        ],
+        audioUrl: null
+    },
+    {
+        id: "call-005",
+        timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8 hours ago
+        phone: "+1 (857) 555-0289",
+        duration: "2m 21s",
+        status: "new",
+        aiSummary: {
+            customerName: "Lisa Anderson",
+            vehicle: {
+                year: 2017,
+                make: "Nissan",
+                model: "Altima"
+            },
+            serviceNeeded: "Air conditioning not cooling properly",
+            urgency: "standard",
+            notes: "A/C blowing warm air instead of cold. Issue started last week. Customer wants it fixed before summer heat arrives."
+        },
+        transcript: [
+            { speaker: "AI", text: "Hello, thank you for calling Conneverse Auto Repair. I'm the AI assistant. How can I help you today?" },
+            { speaker: "Customer", text: "My air conditioning isn't working right." },
+            { speaker: "AI", text: "I can help with that. What's happening with it?" },
+            { speaker: "Customer", text: "It's blowing warm air instead of cold." },
+            { speaker: "AI", text: "Got it. What's your name?" },
+            { speaker: "Customer", text: "Lisa Anderson." },
+            { speaker: "AI", text: "Thanks Lisa. What vehicle do you have?" },
+            { speaker: "Customer", text: "2017 Nissan Altima." },
+            { speaker: "AI", text: "When did you first notice this?" },
+            { speaker: "Customer", text: "About a week ago. I want to get it fixed before it gets really hot." },
+            { speaker: "AI", text: "That's a smart idea. What's your phone number?" },
+            { speaker: "Customer", text: "857-555-0289." },
+            { speaker: "AI", text: "Perfect. We'll review your A/C issue and get back to you with options and pricing. Thanks for calling!" },
+            { speaker: "Customer", text: "Thank you!" }
+        ],
+        audioUrl: null
     }
 ];
 
@@ -395,6 +567,9 @@ function initializeApp() {
 
     // Load leads from localStorage
     loadLeads();
+
+    // Initialize missed calls
+    initializeMissedCalls();
 
     // Render initial view
     renderLeads();
@@ -1767,8 +1942,313 @@ function clearAllData() {
         localStorage.removeItem('conneverse_leads');
         localStorage.removeItem('conneverse_searches');
         localStorage.removeItem('conneverse_welcome_seen');
+        localStorage.removeItem('conneverse_missed_calls');
         location.reload();
     }
+}
+
+// ============================================
+// MISSED CALLS FUNCTIONALITY
+// ============================================
+
+// Load missed calls from localStorage
+function loadMissedCalls() {
+    const stored = localStorage.getItem('conneverse_missed_calls');
+    allMissedCalls = stored ? JSON.parse(stored) : [];
+}
+
+// Save missed calls to localStorage
+function saveMissedCalls() {
+    localStorage.setItem('conneverse_missed_calls', JSON.stringify(allMissedCalls));
+}
+
+// Initialize missed calls with sample data
+function initializeMissedCalls() {
+    const existingCalls = localStorage.getItem('conneverse_missed_calls');
+
+    if (!existingCalls || JSON.parse(existingCalls).length === 0) {
+        // First run - load sample data
+        localStorage.setItem('conneverse_missed_calls', JSON.stringify(sampleMissedCalls));
+        console.log('Sample missed calls loaded');
+    }
+
+    // Load calls from localStorage
+    loadMissedCalls();
+
+    // Update badge
+    updateMissedCallsBadge();
+}
+
+// Update missed calls badge count
+function updateMissedCallsBadge() {
+    const newCallsCount = allMissedCalls.filter(call => call.status === 'new').length;
+    const badge = document.getElementById('missedCallsBadge');
+
+    if (badge) {
+        badge.textContent = newCallsCount;
+
+        // Hide button if no calls
+        const btn = document.getElementById('missedCallsBtn');
+        if (newCallsCount === 0 && allMissedCalls.length === 0) {
+            btn.style.display = 'none';
+        } else {
+            btn.style.display = 'flex';
+        }
+    }
+}
+
+// Open Missed Calls Modal
+function openMissedCallsModal() {
+    const modal = document.getElementById('missedCallsModal');
+    modal.style.display = 'block';
+    renderMissedCalls();
+}
+
+// Close Missed Calls Modal
+function closeMissedCallsModal() {
+    const modal = document.getElementById('missedCallsModal');
+    modal.style.display = 'none';
+}
+
+// Render Missed Calls
+function renderMissedCalls() {
+    const container = document.getElementById('missedCallsContainer');
+    const emptyState = document.getElementById('missedCallsEmptyState');
+
+    if (allMissedCalls.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+    }
+
+    emptyState.classList.add('hidden');
+
+    // Sort by timestamp (newest first)
+    const sortedCalls = [...allMissedCalls].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    container.innerHTML = sortedCalls.map(call => {
+        const urgencyColors = {
+            urgent: 'bg-red-100 text-red-800 border-red-300',
+            standard: 'bg-blue-100 text-blue-800 border-blue-300',
+            flexible: 'bg-green-100 text-green-800 border-green-300'
+        };
+
+        const urgencyColor = urgencyColors[call.aiSummary.urgency] || urgencyColors.standard;
+        const isReviewed = call.status === 'reviewed';
+
+        return `
+            <div class="bg-white rounded-xl border-2 ${isReviewed ? 'border-gray-200 opacity-75' : 'border-orange-200'} p-6 hover:shadow-lg transition-all duration-200 ${isReviewed ? '' : 'missed-call-card-pulse'}">
+                <!-- Header Row -->
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <h3 class="text-xl font-bold text-gray-900">${call.aiSummary.customerName}</h3>
+                            <span class="status-badge ${isReviewed ? 'bg-gray-200 text-gray-600' : 'bg-orange-500 text-white'}">
+                                ${isReviewed ? 'REVIEWED' : 'NEW'}
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-4 text-sm text-gray-600">
+                            <span class="flex items-center gap-1">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                ${formatDate(call.timestamp)}
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                ${call.duration}
+                            </span>
+                            <a href="tel:${call.phone}" class="flex items-center gap-1 text-blue-600 hover:text-blue-800 font-semibold">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                </svg>
+                                ${call.phone}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Summary Section -->
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-5 mb-4 border border-blue-200">
+                    <div class="flex items-center gap-2 mb-3">
+                        <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                        <h4 class="font-bold text-gray-900">AI Summary</h4>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-4 mb-3">
+                        <div>
+                            <p class="text-xs font-semibold text-gray-600 mb-1">VEHICLE</p>
+                            <p class="text-gray-900 font-semibold">${call.aiSummary.vehicle.year} ${call.aiSummary.vehicle.make} ${call.aiSummary.vehicle.model}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-gray-600 mb-1">URGENCY</p>
+                            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold border ${urgencyColor}">
+                                ${call.aiSummary.urgency.toUpperCase()}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <p class="text-xs font-semibold text-gray-600 mb-1">SERVICE NEEDED</p>
+                        <p class="text-gray-900 font-semibold">${call.aiSummary.serviceNeeded}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-semibold text-gray-600 mb-1">NOTES</p>
+                        <p class="text-gray-700 text-sm leading-relaxed">${call.aiSummary.notes}</p>
+                    </div>
+                </div>
+
+                <!-- Transcript Section (Collapsible) -->
+                <div class="mb-4">
+                    <button onclick="toggleTranscript('${call.id}')" class="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-semibold text-sm transition">
+                        <svg id="transcript-icon-${call.id}" class="h-4 w-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                        View Full Transcript
+                    </button>
+
+                    <div id="transcript-${call.id}" class="hidden mt-3 bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto border border-gray-200">
+                        ${call.transcript.map(msg => `
+                            <div class="mb-3 ${msg.speaker === 'AI' ? 'text-left' : 'text-left'}">
+                                <span class="inline-block px-2 py-1 rounded text-xs font-bold ${msg.speaker === 'AI' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'} mb-1">
+                                    ${msg.speaker}
+                                </span>
+                                <p class="text-gray-700 text-sm">${msg.text}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Audio Player (Simulated) -->
+                <div class="bg-gray-100 rounded-lg p-4 mb-4 flex items-center gap-3">
+                    <button class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition">
+                        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </button>
+                    <div class="flex-1">
+                        <div class="h-2 bg-gray-300 rounded-full overflow-hidden">
+                            <div class="h-full bg-blue-600 w-0"></div>
+                        </div>
+                    </div>
+                    <span class="text-sm text-gray-600 font-semibold">${call.duration}</span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-3">
+                    <button onclick="createLeadFromCall('${call.id}')" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        Create Lead
+                    </button>
+                    ${!isReviewed ? `
+                        <button onclick="markCallAsReviewed('${call.id}')" class="flex-1 bg-white border-2 border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-bold hover:bg-gray-50 transition-all duration-200">
+                            Mark as Reviewed
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Toggle Transcript Visibility
+function toggleTranscript(callId) {
+    const transcript = document.getElementById(`transcript-${callId}`);
+    const icon = document.getElementById(`transcript-icon-${callId}`);
+
+    if (transcript.classList.contains('hidden')) {
+        transcript.classList.remove('hidden');
+        icon.style.transform = 'rotate(90deg)';
+    } else {
+        transcript.classList.add('hidden');
+        icon.style.transform = 'rotate(0deg)';
+    }
+}
+
+// Create Lead from Missed Call
+function createLeadFromCall(callId) {
+    const call = allMissedCalls.find(c => c.id === callId);
+    if (!call) return;
+
+    const timestamp = new Date().toISOString();
+
+    // Create new lead object
+    const newLead = {
+        id: Date.now(),
+        customerName: call.aiSummary.customerName,
+        phone: call.phone,
+        email: '', // Not captured in call
+        carMake: call.aiSummary.vehicle.make,
+        carModel: call.aiSummary.vehicle.model,
+        carYear: call.aiSummary.vehicle.year.toString(),
+        issue: call.aiSummary.serviceNeeded + '. ' + call.aiSummary.notes,
+        status: 'New',
+        timestamp: timestamp,
+        quoteAmount: null,
+        source: 'AI Voice Agent',
+        communications: [
+            {
+                id: Date.now(),
+                timestamp: timestamp,
+                sender: 'system',
+                senderName: 'AI Voice Agent',
+                message: `Lead created from missed call on ${formatDate(call.timestamp)}.\n\nCall Duration: ${call.duration}\nUrgency: ${call.aiSummary.urgency}\n\nOriginal Issue: ${call.aiSummary.serviceNeeded}`,
+                type: 'system_note'
+            },
+            {
+                id: Date.now() + 1,
+                timestamp: timestamp,
+                sender: 'dealer',
+                senderName: 'Conneverse Auto Shop',
+                message: 'Thanks for calling! We received your message through our AI voice system and are reviewing your request. We\'ll get back to you shortly with a quote.',
+                type: 'auto_reply'
+            }
+        ]
+    };
+
+    // Add to leads array
+    allLeads.push(newLead);
+    saveLeads();
+
+    // Mark call as reviewed
+    call.status = 'reviewed';
+    saveMissedCalls();
+
+    // Update UI
+    renderLeads();
+    renderMissedCalls();
+    updateAnalytics();
+    updateMissedCallsBadge();
+
+    // Show success message
+    showToast(`Lead created for ${call.aiSummary.customerName}! The call has been marked as reviewed.`, 'success');
+
+    // Close modal and highlight new lead
+    setTimeout(() => {
+        closeMissedCallsModal();
+        switchTab('leads');
+    }, 1500);
+}
+
+// Mark Call as Reviewed
+function markCallAsReviewed(callId) {
+    const call = allMissedCalls.find(c => c.id === callId);
+    if (!call) return;
+
+    call.status = 'reviewed';
+    saveMissedCalls();
+
+    renderMissedCalls();
+    updateMissedCallsBadge();
+
+    showToast('Call marked as reviewed', 'info');
 }
 
 // Welcome Tour Functions
@@ -2035,12 +2515,16 @@ function dismissToast(toastId) {
 window.onclick = function(event) {
     const partsModal = document.getElementById('partsModal');
     const quoteModal = document.getElementById('quoteModal');
+    const missedCallsModal = document.getElementById('missedCallsModal');
 
     if (event.target === partsModal) {
         closePartsModal();
     }
     if (event.target === quoteModal) {
         closeQuoteModal();
+    }
+    if (event.target === missedCallsModal) {
+        closeMissedCallsModal();
     }
 
     // Close dropdown menus when clicking outside
