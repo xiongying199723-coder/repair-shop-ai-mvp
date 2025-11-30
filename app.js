@@ -14,6 +14,14 @@ let currentQuoteData = {
     discount: 0
 };
 
+// =====================================================
+// SUPABASE INTEGRATION
+// =====================================================
+let supabaseSubscriptions = {
+    voiceCalls: null,
+    leads: null
+};
+
 // Sample Data
 const sampleLeads = [
     {
@@ -554,7 +562,7 @@ const laborCosts = {
 };
 
 // Initialize Application
-function initializeApp() {
+async function initializeApp() {
     // Check if this is the first run
     const existingLeads = localStorage.getItem('conneverse_leads');
     const hasSeenWelcome = localStorage.getItem('conneverse_welcome_seen');
@@ -565,15 +573,18 @@ function initializeApp() {
         console.log('Sample data loaded');
     }
 
-    // Load leads from localStorage
-    loadLeads();
+    // Load leads from Supabase or localStorage
+    await loadLeads();
 
     // Initialize missed calls
-    initializeMissedCalls();
+    await initializeMissedCalls();
 
     // Render initial view
     renderLeads();
     updateAnalytics();
+
+    // Set up real-time subscriptions if Supabase is available
+    setupRealtimeSubscriptions();
 
     // Attach event listener to new lead form
     const newLeadForm = document.getElementById('newLeadForm');
@@ -608,15 +619,131 @@ function initializeApp() {
     }
 }
 
-// Load leads from localStorage
-function loadLeads() {
-    const stored = localStorage.getItem('conneverse_leads');
-    allLeads = stored ? JSON.parse(stored) : [];
+// Load leads from Supabase or localStorage
+async function loadLeads() {
+    if (typeof SupabaseDB !== 'undefined' && isSupabaseAvailable && isSupabaseAvailable()) {
+        try {
+            const leads = await SupabaseDB.getLeads();
+            // Convert Supabase format to app format
+            allLeads = leads.map(lead => ({
+                id: lead.id,
+                customerName: lead.customer_name,
+                phone: lead.phone,
+                email: lead.email || '',
+                carMake: lead.car_make || '',
+                carModel: lead.car_model || '',
+                carYear: lead.car_year || '',
+                issue: lead.issue || '',
+                status: lead.status || 'New',
+                source: lead.source || 'Manual',
+                timestamp: lead.created_at,
+                quoteAmount: lead.quote_amount ? parseFloat(lead.quote_amount) : null,
+                notes: lead.notes || '',
+                communications: [] // Will be loaded separately
+            }));
+            console.log('✓ Leads loaded from Supabase:', allLeads.length);
+        } catch (error) {
+            console.error('Error loading leads from Supabase:', error);
+            // Fallback to localStorage
+            const stored = localStorage.getItem('conneverse_leads');
+            allLeads = stored ? JSON.parse(stored) : [];
+        }
+    } else {
+        // Use localStorage
+        const stored = localStorage.getItem('conneverse_leads');
+        allLeads = stored ? JSON.parse(stored) : [];
+        console.log('Leads loaded from localStorage:', allLeads.length);
+    }
 }
 
-// Save leads to localStorage
+// Save leads to localStorage (legacy support)
 function saveLeads() {
     localStorage.setItem('conneverse_leads', JSON.stringify(allLeads));
+}
+
+// =====================================================
+// REAL-TIME SUBSCRIPTIONS
+// =====================================================
+function setupRealtimeSubscriptions() {
+    if (typeof SupabaseDB === 'undefined' || !isSupabaseAvailable || !isSupabaseAvailable()) {
+        console.log('Supabase not available, skipping real-time subscriptions');
+        return;
+    }
+
+    // Subscribe to new voice calls
+    supabaseSubscriptions.voiceCalls = SupabaseDB.subscribeToVoiceCalls((newCall) => {
+        console.log('📞 New voice call received in real-time:', newCall);
+
+        // Add to local array
+        const formattedCall = {
+            id: newCall.id,
+            phone: newCall.phone_number,
+            timestamp: newCall.created_at,
+            duration: `${newCall.duration}s`,
+            status: newCall.status,
+            aiSummary: {
+                customerName: newCall.customer_name || 'Unknown',
+                vehicle: {
+                    year: newCall.vehicle_year || '',
+                    make: newCall.vehicle_make || '',
+                    model: newCall.vehicle_model || ''
+                },
+                serviceNeeded: newCall.service_needed || '',
+                urgency: newCall.urgency || 'standard',
+                notes: newCall.ai_notes || ''
+            },
+            transcript: newCall.transcript || [],
+            audioUrl: newCall.recording_url
+        };
+
+        allMissedCalls.unshift(formattedCall);
+
+        // Update UI
+        updateMissedCallsBadge();
+        renderMissedCalls();
+
+        // Show toast notification
+        showToast('New voice call received!', 'success');
+
+        // Play notification sound (optional)
+        playNotificationSound();
+    });
+
+    // Subscribe to lead updates
+    supabaseSubscriptions.leads = SupabaseDB.subscribeToLeads(async (payload) => {
+        console.log('📊 Lead update received:', payload);
+
+        // Reload leads to stay in sync
+        await loadLeads();
+        renderLeads();
+        updateAnalytics();
+    });
+
+    console.log('✓ Real-time subscriptions active');
+}
+
+// Play notification sound for new calls
+function playNotificationSound() {
+    // Create a simple beep using Web Audio API
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+    } catch (error) {
+        console.log('Could not play notification sound:', error);
+    }
 }
 
 // Render Leads
@@ -689,6 +816,7 @@ function renderLeads() {
                     <p class="text-gray-600 text-sm mt-1">${formatDate(lead.timestamp)}</p>
                 </div>
                 <div class="flex items-center gap-2">
+                    ${lead.source === 'Voice AI' ? '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-300"><svg class="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg> Voice AI</span>' : '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800"><svg class="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg> Manual</span>'}
                     <span class="status-badge status-${lead.status.toLowerCase().replace(' ', '-')}">${lead.status}</span>
                     <!-- Actions Menu -->
                     <div class="relative group">
@@ -1952,18 +2080,53 @@ function clearAllData() {
 // ============================================
 
 // Load missed calls from localStorage
-function loadMissedCalls() {
-    const stored = localStorage.getItem('conneverse_missed_calls');
-    allMissedCalls = stored ? JSON.parse(stored) : [];
+async function loadMissedCalls() {
+    if (typeof SupabaseDB !== 'undefined' && isSupabaseAvailable && isSupabaseAvailable()) {
+        try {
+            const calls = await SupabaseDB.getVoiceCalls();
+            // Convert Supabase format to app format
+            allMissedCalls = calls.map(call => ({
+                id: call.id,
+                phone: call.phone_number,
+                timestamp: call.created_at,
+                duration: `${call.duration || 0}s`,
+                status: call.status,
+                aiSummary: {
+                    customerName: call.customer_name || 'Unknown',
+                    vehicle: {
+                        year: call.vehicle_year || '',
+                        make: call.vehicle_make || '',
+                        model: call.vehicle_model || ''
+                    },
+                    serviceNeeded: call.service_needed || '',
+                    urgency: call.urgency || 'standard',
+                    notes: call.ai_notes || ''
+                },
+                transcript: call.transcript || [],
+                audioUrl: call.recording_url
+            }));
+            console.log('✓ Voice calls loaded from Supabase:', allMissedCalls.length);
+        } catch (error) {
+            console.error('Error loading voice calls from Supabase:', error);
+            // Fallback to localStorage
+            const stored = localStorage.getItem('conneverse_missed_calls');
+            allMissedCalls = stored ? JSON.parse(stored) : [];
+        }
+    } else {
+        // Use localStorage
+        const stored = localStorage.getItem('conneverse_missed_calls');
+        allMissedCalls = stored ? JSON.parse(stored) : [];
+        console.log('Voice calls loaded from localStorage:', allMissedCalls.length);
+    }
 }
 
-// Save missed calls to localStorage
+// Save missed calls to localStorage (legacy support)
 function saveMissedCalls() {
     localStorage.setItem('conneverse_missed_calls', JSON.stringify(allMissedCalls));
 }
 
 // Initialize missed calls with sample data
-function initializeMissedCalls() {
+async function initializeMissedCalls() {
     const existingCalls = localStorage.getItem('conneverse_missed_calls');
 
     if (!existingCalls || JSON.parse(existingCalls).length === 0) {
@@ -1972,8 +2135,8 @@ function initializeMissedCalls() {
         console.log('Sample missed calls loaded');
     }
 
-    // Load calls from localStorage
-    loadMissedCalls();
+    // Load calls from Supabase or localStorage
+    await loadMissedCalls();
 
     // Update badge
     updateMissedCallsBadge();
@@ -2124,20 +2287,37 @@ function renderMissedCalls() {
                     </div>
                 </div>
 
-                <!-- Audio Player (Simulated) -->
+                <!-- Audio Player -->
+                ${call.audioUrl ? `
+                <div class="bg-gray-100 rounded-lg p-4 mb-4">
+                    <div class="flex items-center gap-3 mb-2">
+                        <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+                        </svg>
+                        <span class="text-sm font-semibold text-gray-700">Call Recording</span>
+                    </div>
+                    <audio controls class="w-full" preload="metadata">
+                        <source src="${call.audioUrl}" type="audio/mpeg">
+                        <source src="${call.audioUrl}" type="audio/wav">
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
+                ` : `
                 <div class="bg-gray-100 rounded-lg p-4 mb-4 flex items-center gap-3">
-                    <button class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition">
+                    <div class="w-10 h-10 bg-gray-400 text-white rounded-full flex items-center justify-center">
                         <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M8 5v14l11-7z"/>
                         </svg>
-                    </button>
+                    </div>
                     <div class="flex-1">
                         <div class="h-2 bg-gray-300 rounded-full overflow-hidden">
-                            <div class="h-full bg-blue-600 w-0"></div>
+                            <div class="h-full bg-gray-400 w-0"></div>
                         </div>
                     </div>
-                    <span class="text-sm text-gray-600 font-semibold">${call.duration}</span>
+                    <span class="text-sm text-gray-500 font-semibold">${call.duration}</span>
+                    <span class="text-xs text-gray-500 italic ml-2">Recording not available</span>
                 </div>
+                `}
 
                 <!-- Action Buttons -->
                 <div class="flex gap-3">
@@ -2173,10 +2353,43 @@ function toggleTranscript(callId) {
 }
 
 // Create Lead from Missed Call
-function createLeadFromCall(callId) {
+async function createLeadFromCall(callId) {
     const call = allMissedCalls.find(c => c.id === callId);
     if (!call) return;
 
+    // Try using Supabase first
+    if (typeof SupabaseDB !== 'undefined' && isSupabaseAvailable && isSupabaseAvailable()) {
+        try {
+            const newLeadId = await SupabaseDB.createLeadFromVoiceCall(callId);
+            console.log('✓ Lead created from voice call via Supabase:', newLeadId);
+
+            // Reload data from Supabase
+            await loadLeads();
+            await loadMissedCalls();
+
+            // Update UI
+            renderLeads();
+            renderMissedCalls();
+            updateAnalytics();
+            updateMissedCallsBadge();
+
+            // Show success message
+            showToast(`Lead created for ${call.aiSummary.customerName}! The call has been marked as reviewed.`, 'success');
+
+            // Close modal and switch to leads tab
+            setTimeout(() => {
+                closeMissedCallsModal();
+                switchTab('leads');
+            }, 1000);
+
+            return;
+        } catch (error) {
+            console.error('Error creating lead from call via Supabase:', error);
+            // Fall through to localStorage method
+        }
+    }
+
+    // Fallback to localStorage method
     const timestamp = new Date().toISOString();
 
     // Create new lead object
@@ -2192,15 +2405,15 @@ function createLeadFromCall(callId) {
         status: 'New',
         timestamp: timestamp,
         quoteAmount: null,
-        source: 'AI Voice Agent',
+        source: 'Voice AI',
         communications: [
             {
                 id: Date.now(),
                 timestamp: timestamp,
-                sender: 'system',
-                senderName: 'AI Voice Agent',
-                message: `Lead created from missed call on ${formatDate(call.timestamp)}.\n\nCall Duration: ${call.duration}\nUrgency: ${call.aiSummary.urgency}\n\nOriginal Issue: ${call.aiSummary.serviceNeeded}`,
-                type: 'system_note'
+                sender: 'ai',
+                senderName: 'Voice AI Agent',
+                message: `Lead created from voice call on ${formatDate(call.timestamp)}.\n\nCall Duration: ${call.duration}\nUrgency: ${call.aiSummary.urgency}\n\nOriginal Issue: ${call.aiSummary.serviceNeeded}`,
+                type: 'voice_call'
             },
             {
                 id: Date.now() + 1,
@@ -2217,8 +2430,8 @@ function createLeadFromCall(callId) {
     allLeads.push(newLead);
     saveLeads();
 
-    // Mark call as reviewed
-    call.status = 'reviewed';
+    // Mark call as converted
+    call.status = 'converted';
     saveMissedCalls();
 
     // Update UI

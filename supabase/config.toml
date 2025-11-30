@@ -1,0 +1,37 @@
+# =====================================================
+# SUPABASE PROJECT CONFIGURATION
+# =====================================================
+
+project_id = "your-project-id"
+
+[api]
+# Set to true to enable Supabase Studio
+enabled = true
+port = 54321
+
+[db]
+port = 54322
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+enabled = true
+port = 54324
+
+[auth]
+# Enable email authentication
+enabled = true
+site_url = "https://xiongying199723-coder.github.io/repair-shop-ai-mvp"
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+
+# =====================================================
+# EDGE FUNCTIONS
+# =====================================================
+[functions.bland-webhook]
+verify_jwt = false  # Set to true if you want to verify JWT tokens

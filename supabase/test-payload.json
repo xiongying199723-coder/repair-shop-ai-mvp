@@ -1,0 +1,82 @@
+{
+  "call_id": "test-call-001",
+  "to": "+15551234567",
+  "from": "+15559876543",
+  "status": "completed",
+  "duration": 180,
+  "recording_url": "https://example.com/recordings/test-call-001.mp3",
+  "transcript": [
+    {
+      "speaker": "AI",
+      "text": "Thank you for calling Conneverse Auto Repair! I'm here to help you with your vehicle service needs. May I have your name please?"
+    },
+    {
+      "speaker": "user",
+      "text": "Yes, my name is Sarah Johnson."
+    },
+    {
+      "speaker": "AI",
+      "text": "Thank you, Sarah! Can you confirm the phone number you're calling from?"
+    },
+    {
+      "speaker": "user",
+      "text": "Yes, it's 555-123-4567."
+    },
+    {
+      "speaker": "AI",
+      "text": "Perfect! What vehicle do you need service for? Please tell me the year, make, and model."
+    },
+    {
+      "speaker": "user",
+      "text": "It's a 2019 Toyota RAV4."
+    },
+    {
+      "speaker": "AI",
+      "text": "Got it, a 2019 Toyota RAV4. What seems to be the problem with your vehicle, or what service do you need?"
+    },
+    {
+      "speaker": "user",
+      "text": "I need new brake pads. I've been hearing a squeaking noise when I brake, especially at low speeds."
+    },
+    {
+      "speaker": "AI",
+      "text": "I understand. That squeaking definitely needs attention. How soon do you need this taken care of? Is this urgent, or is the timing flexible?"
+    },
+    {
+      "speaker": "user",
+      "text": "I'd say it's pretty urgent. I use my car daily for work."
+    },
+    {
+      "speaker": "AI",
+      "text": "Understood. So to summarize: Sarah Johnson, 2019 Toyota RAV4, needs brake pad replacement due to squeaking noise, and this is urgent. Is that correct?"
+    },
+    {
+      "speaker": "user",
+      "text": "Yes, that's right."
+    },
+    {
+      "speaker": "AI",
+      "text": "Perfect! We have all your information. Our team will review your case and get back to you shortly with a quote. Is there anything else you'd like to add before we go?"
+    },
+    {
+      "speaker": "user",
+      "text": "No, that's all. Thank you!"
+    },
+    {
+      "speaker": "AI",
+      "text": "Thank you for calling Conneverse Auto Repair, Sarah! We'll be in touch soon. Have a great day!"
+    }
+  ],
+  "variables": {
+    "customer_name": "Sarah Johnson",
+    "phone_number": "+15551234567",
+    "vehicle_year": "2019",
+    "vehicle_make": "Toyota",
+    "vehicle_model": "RAV4",
+    "service_needed": "Brake pad replacement",
+    "urgency": "urgent",
+    "notes": "Customer reports squeaking noise when braking at low speeds. Uses vehicle daily for work commute."
+  },
+  "created_at": "2024-01-15T10:30:00Z",
+  "ended_at": "2024-01-15T10:33:00Z"
+}
