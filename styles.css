@@ -921,3 +921,232 @@ select:focus {
     min-width: 20px;
   }
 }
+
+/* ============================================
+   16. MARKET PRICE COMPARISON STYLES
+   ============================================ */
+
+/* Market Comparison Section */
+.market-comparison-section {
+  animation: fadeIn 0.5s var(--ease-out);
+}
+
+/* Market Info Button */
+.market-info-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.market-info-btn:hover {
+  background: rgba(29, 78, 216, 0.1);
+  transform: scale(1.1);
+}
+
+/* Price Slider */
+.market-price-slider {
+  position: relative;
+  padding: 0 12px;
+}
+
+.market-price-slider .relative {
+  position: relative;
+  overflow: visible;
+}
+
+/* Price Position Indicator */
+.market-position-indicator {
+  transition: all var(--transition-base);
+}
+
+.market-position-indicator:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Strategy Box */
+.market-strategy {
+  position: relative;
+  overflow: hidden;
+}
+
+.market-strategy::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, #9333EA, #7C3AED);
+}
+
+.market-strategy p {
+  padding-left: 12px;
+}
+
+/* Responsive Design for Market Comparison */
+@media (max-width: 768px) {
+  .market-comparison-section {
+    padding: var(--space-4);
+  }
+
+  .market-comparison-section h3 {
+    font-size: var(--text-lg);
+  }
+
+  .market-price-slider {
+    margin-bottom: var(--space-4);
+  }
+
+  /* Stack price cards vertically on mobile */
+  .market-comparison-section .grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Smaller text for mobile */
+  .market-position-indicator p {
+    font-size: var(--text-sm);
+  }
+
+  .market-strategy p {
+    font-size: var(--text-xs);
+  }
+
+  /* Action buttons stack vertically */
+  .market-comparison-section .flex-col {
+    flex-direction: column;
+  }
+
+  .market-comparison-section button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .market-comparison-section {
+    border-radius: var(--radius-lg);
+    padding: var(--space-3);
+  }
+
+  .market-price-slider {
+    padding: 0 4px;
+  }
+
+  /* Hide emoji on very small screens to save space */
+  .market-comparison-section > div > div > span {
+    display: none;
+  }
+
+  /* Adjust slider indicator size */
+  .market-price-slider .w-6 {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .market-price-slider .top-8 {
+    top: 1.75rem;
+  }
+}
+
+/* Print Styles for Market Comparison */
+@media print {
+  .market-comparison-section {
+    page-break-inside: avoid;
+    background: white !important;
+    border: 1px solid #ddd !important;
+  }
+
+  .market-comparison-section .no-print {
+    display: none !important;
+  }
+
+  .market-info-btn {
+    display: none !important;
+  }
+
+  /* Simplify colors for print */
+  .market-price-slider .relative {
+    background: linear-gradient(to right, #d1d5db, #6b7280, #374151) !important;
+  }
+
+  .market-position-indicator,
+  .market-strategy {
+    border-color: #9ca3af !important;
+    background: #f9fafb !important;
+  }
+}
+
+/* Accessibility Enhancements */
+.market-info-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.market-comparison-section button:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Animation for price slider marker */
+@keyframes slideMarker {
+  from {
+    opacity: 0;
+    transform: translateX(-10px) translateY(-50%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(-50%);
+  }
+}
+
+.market-price-slider .absolute {
+  animation: slideMarker 0.6s var(--ease-out);
+}
+
+/* Hover effects for action buttons */
+.market-comparison-section button {
+  position: relative;
+  overflow: hidden;
+}
+
+.market-comparison-section button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.market-comparison-section button:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Color-coded status indicators */
+.status-good {
+  border-left: 4px solid var(--color-success);
+}
+
+.status-caution {
+  border-left: 4px solid var(--color-warning);
+}
+
+.status-warning {
+  border-left: 4px solid var(--color-accent);
+}
+
+.status-risk {
+  border-left: 4px solid var(--color-error);
+}
