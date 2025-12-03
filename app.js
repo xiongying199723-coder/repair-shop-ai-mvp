@@ -334,6 +334,17 @@ const sampleMissedCalls = [
 const partsDatabase = {
     "brake": [
         {
+            name: "Premium Brake Pad Set",
+            brand: "Conneverse Pro",
+            supplier: "Conneverse",
+            price: 47.99,
+            delivery: "Same day",
+            rating: 4.8,
+            stock: "In Stock",
+            bestValue: false,
+            conneverseDirect: true
+        },
+        {
             name: "Premium Ceramic Brake Pads",
             brand: "Wagner ThermoQuiet",
             supplier: "AutoZone",
@@ -341,7 +352,8 @@ const partsDatabase = {
             delivery: "1-2 days",
             rating: 4.5,
             stock: "In Stock",
-            bestValue: false
+            bestValue: false,
+            conneverseDirect: false
         },
         {
             name: "OEM Brake Pad Set",
@@ -351,7 +363,8 @@ const partsDatabase = {
             delivery: "2-3 days",
             rating: 4.8,
             stock: "In Stock",
-            bestValue: true
+            bestValue: true,
+            conneverseDirect: false
         },
         {
             name: "Performance Brake Pads",
@@ -371,10 +384,22 @@ const partsDatabase = {
             delivery: "Same day",
             rating: 4.2,
             stock: "In Stock",
-            bestValue: false
+            bestValue: false,
+            conneverseDirect: false
         }
     ],
     "oil": [
+        {
+            name: "Synthetic Motor Oil 5W-30",
+            brand: "Conneverse Premium",
+            supplier: "Conneverse",
+            price: 26.99,
+            delivery: "Same day",
+            rating: 4.7,
+            stock: "In Stock",
+            bestValue: false,
+            conneverseDirect: true
+        },
         {
             name: "Full Synthetic Motor Oil 5W-30",
             brand: "Mobil 1",
@@ -383,7 +408,8 @@ const partsDatabase = {
             delivery: "1 day",
             rating: 4.8,
             stock: "In Stock",
-            bestValue: true
+            bestValue: true,
+            conneverseDirect: false
         },
         {
             name: "Synthetic Blend Oil 5W-30",
@@ -393,7 +419,8 @@ const partsDatabase = {
             delivery: "1-2 days",
             rating: 4.6,
             stock: "In Stock",
-            bestValue: false
+            bestValue: false,
+            conneverseDirect: false
         },
         {
             name: "Premium Oil Filter",
@@ -403,7 +430,8 @@ const partsDatabase = {
             delivery: "1 day",
             rating: 4.7,
             stock: "In Stock",
-            bestValue: false
+            bestValue: false,
+            conneverseDirect: false
         },
         {
             name: "OEM Oil Filter",
@@ -413,10 +441,22 @@ const partsDatabase = {
             delivery: "Same day",
             rating: 4.9,
             stock: "In Stock",
-            bestValue: false
+            bestValue: false,
+            conneverseDirect: false
         }
     ],
     "alternator": [
+        {
+            name: "Remanufactured Alternator 130A",
+            brand: "Conneverse Select",
+            supplier: "Conneverse",
+            price: 179.99,
+            delivery: "Same day",
+            rating: 4.7,
+            stock: "In Stock",
+            bestValue: false,
+            conneverseDirect: true
+        },
         {
             name: "Remanufactured Alternator 130A",
             brand: "Bosch",
@@ -461,13 +501,26 @@ const partsDatabase = {
     "air conditioning": [
         {
             name: "A/C Compressor Assembly",
+            brand: "Conneverse Climate",
+            supplier: "Conneverse",
+            price: 219.99,
+            delivery: "Same day",
+            rating: 4.6,
+            stock: "In Stock",
+            bestValue: false,
+            conneverseDirect: true
+        },
+        {
+            name: "A/C Compressor Assembly",
             brand: "Four Seasons",
             supplier: "AutoZone",
             price: 225.99,
             delivery: "1-2 days",
             rating: 4.5,
             stock: "In Stock",
-            bestValue: true
+            bestValue: true,
+            conneverseDirect: false
+
         },
         {
             name: "A/C Refrigerant R-134a",
@@ -477,7 +530,8 @@ const partsDatabase = {
             delivery: "1 day",
             rating: 4.4,
             stock: "In Stock",
-            bestValue: false
+            bestValue: false,
+            conneverseDirect: false
         },
         {
             name: "A/C Condenser",
@@ -487,7 +541,8 @@ const partsDatabase = {
             delivery: "2-3 days",
             rating: 4.7,
             stock: "In Stock",
-            bestValue: false
+            bestValue: false,
+            conneverseDirect: false
         },
         {
             name: "A/C Recharge Kit",
@@ -497,7 +552,8 @@ const partsDatabase = {
             delivery: "Same day",
             rating: 4.3,
             stock: "In Stock",
-            bestValue: false
+            bestValue: false,
+            conneverseDirect: false
         }
     ],
     "default": [
@@ -509,7 +565,8 @@ const partsDatabase = {
             delivery: "1-2 days",
             rating: 4.5,
             stock: "In Stock",
-            bestValue: true
+            bestValue: true,
+            conneverseDirect: false
         },
         {
             name: "Premium Replacement Part",
@@ -519,7 +576,8 @@ const partsDatabase = {
             delivery: "2-3 days",
             rating: 4.7,
             stock: "In Stock",
-            bestValue: false
+            bestValue: false,
+            conneverseDirect: false
         },
         {
             name: "Performance Part",
@@ -529,7 +587,8 @@ const partsDatabase = {
             delivery: "1 day",
             rating: 4.8,
             stock: "Limited",
-            bestValue: false
+            bestValue: false,
+            conneverseDirect: false
         },
         {
             name: "Economy Part",
@@ -539,7 +598,8 @@ const partsDatabase = {
             delivery: "3-4 days",
             rating: 4.2,
             stock: "In Stock",
-            bestValue: false
+            bestValue: false,
+            conneverseDirect: false
         }
     ]
 };
@@ -1243,10 +1303,11 @@ function renderParts(parts, laborCost) {
     const container = document.getElementById('partsGrid');
 
     container.innerHTML = parts.map((part, index) => `
-        <div class="bg-white rounded-lg border-2 ${part.bestValue ? 'border-green-500' : 'border-gray-200'} p-4 sm:p-6 relative hover:shadow-lg transition-shadow">
-            ${part.bestValue ? '<div class="absolute top-0 right-0 m-3 sm:m-4"><span class="best-value-badge text-xs sm:text-sm">BEST VALUE</span></div>' : ''}
+        <div class="bg-white rounded-lg border-2 ${part.conneverseDirect ? 'border-orange-500' : part.bestValue ? 'border-green-500' : 'border-gray-200'} p-4 sm:p-6 relative hover:shadow-lg transition-shadow">
+            ${part.conneverseDirect ? '<div class="absolute top-0 right-0 m-3 sm:m-4"><span class="conneverse-badge text-xs sm:text-sm">CONNEVERSE DIRECT</span></div>' : ''}
+            ${part.bestValue ? `<div class="absolute top-0 right-0 m-3 sm:m-4" style="margin-top: ${part.conneverseDirect ? '2.5rem' : '0'}"><span class="best-value-badge text-xs sm:text-sm">BEST VALUE</span></div>` : ''}
 
-            <div class="mb-4 ${part.bestValue ? 'pr-24' : ''}">
+            <div class="mb-4 ${part.bestValue || part.conneverseDirect ? 'pr-24' : ''}">
                 <h4 class="text-base sm:text-lg font-bold text-gray-900 mb-1">${part.name}</h4>
                 <p class="text-gray-600 text-xs sm:text-sm">${part.brand}</p>
             </div>
@@ -1280,7 +1341,7 @@ function renderParts(parts, laborCost) {
                 </div>
             </div>
 
-            <button onclick="selectPart(${index})" class="w-full ${part.bestValue ? 'bg-green-600 hover:bg-green-700' : 'bg-auto-blue hover:bg-blue-800'} text-white px-4 py-3 rounded-lg font-semibold transition text-sm sm:text-base">
+            <button onclick="selectPart(${index})" class="w-full ${part.conneverseDirect ? 'bg-gradient-to-r from-auto-orange to-orange-600 hover:shadow-lg' : part.bestValue ? 'bg-green-600 hover:bg-green-700' : 'bg-auto-blue hover:bg-blue-800'} text-white px-4 py-3 rounded-lg font-semibold transition text-sm sm:text-base">
                 Select This Part
             </button>
         </div>
