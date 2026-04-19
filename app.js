@@ -665,7 +665,8 @@ const partsDatabase = {
     ]
 };
 
-// Labor costs for different services
+// Labor hours for different services (at the shop's hourly rate)
+const BASE_LABOR_RATE = 133;
 const laborCosts = {
     "brake": 120,
     "oil": 35,
@@ -673,6 +674,32 @@ const laborCosts = {
     "air conditioning": 200,
     "default": 100
 };
+
+// Get labor cost for a service, scaled by the shop's hourly rate
+function getLaborCost(partType) {
+    const base = laborCosts[partType] ?? laborCosts.default;
+    const shopRate = getShopLaborRate();
+    return Math.round(base * (shopRate / BASE_LABOR_RATE) * 100) / 100;
+}
+
+// Get the current shop's hourly labor rate, with safe fallback
+function getShopLaborRate() {
+    try {
+        const profile = window.ShopProfile && window.ShopProfile.getOrDefault();
+        return (profile && profile.laborRate) || BASE_LABOR_RATE;
+    } catch (e) {
+        return BASE_LABOR_RATE;
+    }
+}
+
+// Get the current shop profile, with safe fallback
+function getCurrentShop() {
+    try {
+        return (window.ShopProfile && window.ShopProfile.getOrDefault()) || null;
+    } catch (e) {
+        return null;
+    }
+}
 
 // Initialize Application
 function initializeApp() {
@@ -1335,7 +1362,7 @@ function searchForParts() {
 
         // Get parts for this type
         const parts = partsDatabase[partType];
-        const laborCost = laborCosts[partType];
+        const laborCost = getLaborCost(partType);
 
         // Render parts
         renderParts(parts, laborCost);
@@ -1477,6 +1504,12 @@ function renderQuote(part) {
     const validUntil = new Date();
     validUntil.setDate(validUntil.getDate() + 7);
 
+    const shop = getCurrentShop() || {
+        shopName: 'Conneverse Auto Shop',
+        address: '',
+        phone: '(555) 123-4567'
+    };
+
     const quoteHTML = `
         <div class="print-section">
             <!-- Quote Header -->
@@ -1487,13 +1520,15 @@ function renderQuote(part) {
                         <p class="text-blue-100">Quote #${currentLead.id}</p>
                     </div>
                     <div class="text-right">
-                        <div class="flex items-center text-white mb-2">
-                            <svg class="h-10 w-10 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="flex items-center justify-end text-white mb-2">
+                            <svg class="h-8 w-8 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                             </svg>
-                            <span class="text-2xl font-bold">Conne<span class="text-orange-300">verse</span></span>
+                            <span class="text-2xl font-bold">${shop.shopName}</span>
                         </div>
-                        <p class="text-blue-100 text-sm">Your Trusted Auto Shop</p>
+                        ${shop.address ? `<p class="text-blue-100 text-sm">${shop.address}</p>` : ''}
+                        ${shop.phone ? `<p class="text-blue-100 text-sm">${shop.phone}</p>` : ''}
+                        <p class="text-blue-200 text-xs mt-1">Powered by Conneverse</p>
                     </div>
                 </div>
             </div>
@@ -1554,7 +1589,10 @@ function renderQuote(part) {
                 <!-- Labor -->
                 <div class="border-t pt-4 mb-4">
                     <div class="flex justify-between items-center mb-2">
-                        <span class="text-gray-700 font-semibold">Labor & Installation</span>
+                        <div>
+                            <span class="text-gray-700 font-semibold">Labor & Installation</span>
+                            <span class="block text-xs text-gray-500 mt-0.5">Shop rate: $${getShopLaborRate()}/hr</span>
+                        </div>
                         <div class="text-right">
                             <span id="laborCostView" class="text-lg font-semibold text-gray-900">$${currentQuoteData.laborCost.toFixed(2)}</span>
                             <input type="number" id="laborCostEdit" step="0.01" min="0"
@@ -1731,8 +1769,8 @@ function renderQuote(part) {
             </div>
 
             <div class="text-center text-gray-500 text-sm mt-8 pt-6 border-t">
-                <p>Thank you for choosing Conneverse!</p>
-                <p class="mt-1">Questions? Contact us at (555) 123-4567 or info@conneverse.com</p>
+                <p>Thank you for choosing ${shop.shopName}!</p>
+                <p class="mt-1">Questions? Contact us at ${shop.phone}${shop.address ? ' · ' + shop.address : ''}</p>
             </div>
         </div>
     `;

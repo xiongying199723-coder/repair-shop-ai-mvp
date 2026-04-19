@@ -28,11 +28,20 @@
             border-bottom: 3px solid var(--color-accent);
         }
     </style>
+    <script src="shop-profile.js"></script>
+    <script>
+        // Redirect to login if no shop profile is set
+        (function() {
+            if (!window.ShopProfile.get()) {
+                window.location.replace('login.html');
+            }
+        })();
+    </script>
 </head>
 <body class="bg-gray-50">
 
     <!-- Navigation -->
-    <nav class="bg-white shadow-md sticky top-0 z-40">
+    <nav class="bg-white shadow-md sticky top-0 z-40 shop-header">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
@@ -40,10 +49,14 @@
                         <svg class="h-8 w-8 text-auto-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                         </svg>
-                        <span class="ml-2 text-2xl font-bold text-gray-900">Conne<span class="text-auto-orange">verse</span></span>
+                        <div class="ml-2 flex flex-col leading-tight">
+                            <span class="text-2xl font-bold text-gray-900">Conne<span class="text-auto-orange">verse</span></span>
+                            <span id="shopNameLabel" class="shop-name-label"></span>
+                        </div>
                     </div>
                 </div>
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-3 sm:space-x-4">
+                    <span id="shopRegionLabel" class="shop-region-label hidden sm:inline-flex"></span>
                     <button onclick="openNewLeadModal()" class="btn btn-primary text-sm px-4 py-2">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
@@ -58,6 +71,12 @@
                         Help
                     </button>
                     <button onclick="clearAllData()" class="text-red-600 hover:text-red-700 px-3 py-2 rounded-md text-sm font-medium">Clear Data</button>
+                    <a href="login.html" title="Edit shop profile" aria-label="Shop settings" class="shop-settings-btn">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </a>
                 </div>
             </div>
         </div>
@@ -649,5 +668,16 @@
     </div>
 
     <script src="app.js"></script>
+    <script>
+        // Populate shop info in header
+        (function() {
+            const profile = window.ShopProfile && window.ShopProfile.get();
+            if (!profile) return;
+            const nameEl = document.getElementById('shopNameLabel');
+            const regionEl = document.getElementById('shopRegionLabel');
+            if (nameEl) nameEl.textContent = profile.shopName;
+            if (regionEl && profile.region) regionEl.innerHTML = '<span aria-hidden="true">📍</span>&nbsp;' + profile.region;
+        })();
+    </script>
 </body>
 </html>

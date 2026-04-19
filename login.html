@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Conneverse - Shop Setup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="login-page-body">
+    <div class="login-page-container">
+        <div class="login-card">
+            <!-- Brand Header -->
+            <div class="login-brand">
+                <h1 class="login-brand-title">Conneverse</h1>
+                <p class="login-brand-tagline">Trusted Parts Agent</p>
+                <div class="login-brand-divider"></div>
+            </div>
+
+            <!-- Welcome Text -->
+            <div class="login-welcome">
+                <h2 class="login-welcome-title">Welcome — let's set up your shop</h2>
+                <p class="login-welcome-subtitle">This info will appear on your quotes and invoices.</p>
+            </div>
+
+            <!-- Form -->
+            <form id="shopProfileForm" class="login-form" novalidate>
+                <div class="login-field">
+                    <label for="shopName" class="login-label">Shop name</label>
+                    <input type="text" id="shopName" name="shopName" required
+                        class="login-input" placeholder="Bay Auto Care" autocomplete="organization">
+                    <div class="login-error" id="error-shopName"></div>
+                </div>
+
+                <div class="login-field">
+                    <label for="address" class="login-label">Shop address</label>
+                    <input type="text" id="address" name="address" required
+                        class="login-input" placeholder="847 Harrison St, San Francisco, CA 94107"
+                        autocomplete="street-address">
+                    <div class="login-error" id="error-address"></div>
+                </div>
+
+                <div class="login-field-row">
+                    <div class="login-field">
+                        <label for="phone" class="login-label">Phone</label>
+                        <input type="tel" id="phone" name="phone" required
+                            class="login-input" placeholder="(415) 555-0187" autocomplete="tel">
+                        <div class="login-error" id="error-phone"></div>
+                    </div>
+                    <div class="login-field">
+                        <label for="zipCode" class="login-label">ZIP code</label>
+                        <input type="text" id="zipCode" name="zipCode"
+                            class="login-input" placeholder="94107" autocomplete="postal-code"
+                            maxlength="10">
+                    </div>
+                </div>
+
+                <div class="login-field">
+                    <label for="region" class="login-label">Region</label>
+                    <select id="region" name="region" class="login-input">
+                        <option value="San Francisco Bay Area">San Francisco Bay Area</option>
+                        <option value="Los Angeles">Los Angeles</option>
+                        <option value="New York / NJ">New York / NJ</option>
+                        <option value="Chicago">Chicago</option>
+                        <option value="Houston">Houston</option>
+                        <option value="Phoenix">Phoenix</option>
+                        <option value="Seattle">Seattle</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="login-field">
+                    <label for="laborRate" class="login-label">
+                        Labor rate
+                        <span class="login-label-hint">per hour</span>
+                    </label>
+                    <div class="login-input-prefix">
+                        <span class="login-input-prefix-symbol">$</span>
+                        <input type="number" id="laborRate" name="laborRate" required
+                            class="login-input login-input-with-prefix" value="133" min="0" step="1">
+                    </div>
+                    <div class="login-error" id="error-laborRate"></div>
+                </div>
+
+                <button type="submit" class="login-submit-btn">
+                    Get Started
+                    <span class="login-submit-arrow">→</span>
+                </button>
+
+                <button type="button" id="skipBtn" class="login-skip-link">
+                    Skip — use demo defaults
+                </button>
+            </form>
+        </div>
+
+        <p class="login-footer">Your info is stored locally in your browser.</p>
+    </div>
+
+    <script src="shop-profile.js"></script>
+    <script>
+        (function() {
+            const form = document.getElementById('shopProfileForm');
+            const skipBtn = document.getElementById('skipBtn');
+
+            // Pre-fill with existing profile if present
+            const existing = window.ShopProfile.get();
+            if (existing) {
+                document.getElementById('shopName').value = existing.shopName || '';
+                document.getElementById('address').value = existing.address || '';
+                document.getElementById('phone').value = existing.phone || '';
+                document.getElementById('zipCode').value = existing.zipCode || '';
+                document.getElementById('region').value = existing.region || 'San Francisco Bay Area';
+                document.getElementById('laborRate').value = existing.laborRate || 133;
+            }
+
+            function showError(field, message) {
+                const el = document.getElementById('error-' + field);
+                if (el) {
+                    el.textContent = message;
+                    el.classList.add('visible');
+                }
+                document.getElementById(field)?.classList.add('login-input-error');
+            }
+
+            function clearErrors() {
+                document.querySelectorAll('.login-error').forEach(e => {
+                    e.textContent = '';
+                    e.classList.remove('visible');
+                });
+                document.querySelectorAll('.login-input-error').forEach(e => {
+                    e.classList.remove('login-input-error');
+                });
+            }
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                clearErrors();
+
+                const shopName = document.getElementById('shopName').value.trim();
+                const address = document.getElementById('address').value.trim();
+                const phone = document.getElementById('phone').value.trim();
+                const zipCode = document.getElementById('zipCode').value.trim();
+                const region = document.getElementById('region').value;
+                const laborRate = parseFloat(document.getElementById('laborRate').value);
+
+                let hasError = false;
+                if (!shopName) { showError('shopName', 'Shop name is required'); hasError = true; }
+                if (!address) { showError('address', 'Address is required'); hasError = true; }
+                if (!phone) { showError('phone', 'Phone is required'); hasError = true; }
+                if (!laborRate || laborRate <= 0) { showError('laborRate', 'Enter a valid labor rate'); hasError = true; }
+
+                if (hasError) return;
+
+                window.ShopProfile.set({
+                    shopName, address, phone, zipCode, region, laborRate
+                });
+
+                window.location.href = 'dashboard.html';
+            });
+
+            skipBtn.addEventListener('click', function() {
+                window.ShopProfile.useDefaults();
+                window.location.href = 'dashboard.html';
+            });
+        })();
+    </script>
+</body>
+</html>
